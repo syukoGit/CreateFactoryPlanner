@@ -1,2 +1,5 @@
 {
+  "commands.createfactoryplanner.dump.recipes.success": "Dumped %s recipes to %s",
+  "commands.createfactoryplanner.dump.recipes.unavailable": "No world loaded: recipes are only readable in game",
+  "commands.createfactoryplanner.dump.recipes.failed": "Recipe dump failed: %s"
 }
