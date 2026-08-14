@@ -15,9 +15,22 @@ repositories {
     mavenCentral()
     maven { url = 'https://maven.createmod.net' }
     maven { url = 'https://mvn.devos.one/snapshots' }
+    maven { url = 'https://maven.terraformersmc.com/releases' }
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+configurations {
+    devMods {
+        canBeConsumed = false
+        transitive = false
+    }
+}
+
+var installDevMods = tasks.register("installDevMods", Sync) {
+    from configurations.devMods
+    into layout.projectDirectory.dir("run/mods")
+}
 
 neoForge {
     version = project.neo_version
@@ -46,6 +59,7 @@ neoForge {
 
         configureEach {
             logLevel = org.slf4j.event.Level.DEBUG
+            taskBefore installDevMods
         }
     }
 
@@ -58,7 +72,9 @@ neoForge {
 
 dependencies {
     compileOnly "com.simibubi.create:create-1.21.1:${create_version}"
-    additionalRuntimeClasspath "com.simibubi.create:create-1.21.1:${create_version}"
+
+    devMods "com.simibubi.create:create-1.21.1:${create_version}"
+    devMods "dev.emi:emi-neoforge:${emi_version}"
 
     testImplementation platform("org.junit:junit-bom:${junit_version}")
     testImplementation 'org.junit.jupiter:junit-jupiter'

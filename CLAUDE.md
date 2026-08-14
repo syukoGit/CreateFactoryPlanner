@@ -34,14 +34,26 @@ sit behind the `RecipeSource` interface from day one.
 ## Environment
 
 - **Minecraft** 1.21.1, **NeoForge** 21.1.248, **Java 21** (toolchain enforced in `build.gradle`).
-- **Create** 6.0.11-295, `compileOnly` plus `additionalRuntimeClasspath` so the dev runs actually load it.
+- **Create** 6.0.11-295 in `compileOnly`. Earlier 6.0.x versions publish only a `-slim` classifier; 6.0.11-295 is the
+  first with Gradle module metadata and a real mod jar, so it is also the first that resolves its own transitives.
+- **EMI** 1.1.24+1.21.1, runtime only, for cross-checking recipe dumps in game. The mod never compiles against it.
 - Mappings: Parchment (`parchment_minecraft_version` / `parchment_mappings_version`).
 - All version numbers live in `gradle.properties` — change them there, not in `build.gradle`.
 
-Three repositories are declared. `maven.createmod.net` serves Create, Ponder and Flywheel. `mvn.devos.one/snapshots`
+**Dev runs load third-party mods from `run/mods/`, never from the classpath.** NeoForge 21.1 registers four
+`IModFileCandidateLocator`s — `NeoForgeDevProvider`, `ModsFolderLocator`, `MavenDirectoryLocator`, `UserdevLocator` —
+and not one of them scans the classpath. A jar added via `additionalRuntimeClasspath` is therefore linkable but
+invisible to mod loading, which surfaces as `Currently, create is not installed` even though the jar is right there in
+`build/moddev/clientLegacyClasspath.txt`. The `devMods` configuration is synced into `run/mods` by the `installDevMods`
+task, hooked to every run through `taskBefore`. It is deliberately `transitive = false`: the Create jar already bundles
+Registrate, Ponder and Flywheel under `META-INF/jarjar/`, and copying them alongside it would load them twice.
+`installDevMods` is a `Sync` task, so it deletes anything else in `run/mods` — drop manual test jars elsewhere.
+
+Four repositories are declared. `maven.createmod.net` serves Create, Ponder and Flywheel. `mvn.devos.one/snapshots`
 serves **Registrate**, pulled in transitively by Create: the usual `maven.tterrag.com` stopped publishing in 2023 and
 has nothing past MC 1.20, so `MC1.21-1.3.0+67` exists only on that mirror. If dependency resolution breaks with
 `Could not find com.tterrag.registrate:Registrate`, that mirror is the cause, not the Create coordinate.
+`maven.terraformersmc.com/releases` serves EMI and nothing else.
 
 ## Commands
 
