@@ -6,18 +6,15 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.context.CommandContext;
 import fr.syuko.createfactoryplanner.CreateFactoryPlanner;
+import fr.syuko.createfactoryplanner.core.model.*;
+import fr.syuko.createfactoryplanner.integration.create.HarvestProblem;
+import fr.syuko.createfactoryplanner.integration.create.ProcessingRecipeAdapter;
+import fr.syuko.createfactoryplanner.integration.create.RecipeHarvest;
 import fr.syuko.createfactoryplanner.integration.recipes.ClientRecipeSource;
 import fr.syuko.createfactoryplanner.integration.recipes.RecipeSource;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeHolder;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -27,13 +24,12 @@ import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 @EventBusSubscriber(modid = CreateFactoryPlanner.MODID, value = Dist.CLIENT)
 public final class RecipeDumpCommand {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-
-    private static final String UNKNOWN = "unknown";
 
     private RecipeDumpCommand() {
     }
@@ -56,11 +52,11 @@ public final class RecipeDumpCommand {
             return 0;
         }
 
-        Collection<RecipeHolder<?>> holders = recipes.all();
+        RecipeHarvest harvest = ProcessingRecipeAdapter.harvest(recipes.all());
         Path target = dumpPath();
 
         try {
-            writeDump(target, buildDump(holders, source.registryAccess()));
+            writeDump(target, describe(harvest));
         } catch (IOException e) {
             source.sendFailure(Component.translatable("commands.createfactoryplanner.dump.recipes.failed",
                                                       String.valueOf(e.getMessage())));
@@ -68,86 +64,103 @@ public final class RecipeDumpCommand {
         }
 
         source.sendSuccess(() -> Component.translatable("commands.createfactoryplanner.dump.recipes.success",
-                                                        holders.size(),
+                                                        harvest.nodes().size(),
+                                                        harvest.inspectedRecipes(),
                                                         target.toString()), false);
-        return holders.size();
+
+        if (!harvest.unsupportedTypes().isEmpty()) {
+            source.sendSuccess(() -> Component.translatable("commands.createfactoryplanner.dump.recipes.unsupported",
+                                                            harvest.unsupportedTypes().size()), false);
+        }
+        if (!harvest.problems().isEmpty()) {
+            source.sendFailure(Component.translatable("commands.createfactoryplanner.dump.recipes.problems",
+                                                      harvest.problems().size()));
+        }
+        return harvest.nodes().size();
     }
 
-    private static JsonObject buildDump(Collection<RecipeHolder<?>> holders, HolderLookup.Provider registries) {
-        List<RecipeHolder<?>> sorted = holders.stream()
-                                              .sorted(Comparator.comparing(holder -> holder.id().toString()))
-                                              .toList();
-
-        JsonArray entries = new JsonArray();
-        Map<String, Integer> countsByType = new TreeMap<>();
-
-        for (RecipeHolder<?> holder : sorted) {
-            String type = typeId(holder.value());
-            countsByType.merge(type, 1, Integer::sum);
-            entries.add(describe(holder, type, registries));
-        }
-
-        JsonObject counts = new JsonObject();
-        countsByType.forEach(counts::addProperty);
-
+    private static JsonObject describe(RecipeHarvest harvest) {
         JsonObject root = new JsonObject();
-        root.addProperty("recipe_count", sorted.size());
-        root.add("count_by_type", counts);
-        root.add("recipes", entries);
+        root.addProperty("inspected_recipes", harvest.inspectedRecipes());
+        root.addProperty("node_count", harvest.nodes().size());
+        root.add("supported_types", counts(harvest.supportedTypes()));
+        root.add("unsupported_types", counts(harvest.unsupportedTypes()));
+        root.add("manual_only", ids(harvest.manualOnly()));
+        root.add("problems", problems(harvest.problems()));
+        root.add("recipes", nodes(harvest.nodes()));
         return root;
     }
 
-    private static JsonObject describe(RecipeHolder<?> holder, String type, HolderLookup.Provider registries) {
-        Recipe<?> recipe = holder.value();
-
-        JsonObject entry = new JsonObject();
-        entry.addProperty("id", holder.id().toString());
-        entry.addProperty("type", type);
-        entry.add("ingredients", ingredients(recipe));
-
-        ItemStack primary = primaryResult(recipe, registries);
-        if (!primary.isEmpty()) {
-            JsonObject result = new JsonObject();
-            result.addProperty("item", itemId(primary));
-            result.addProperty("count", primary.getCount());
-            entry.add("primary_result", result);
-        }
-
-        return entry;
+    private static JsonObject counts(Map<NamespacedId, Integer> countsByType) {
+        JsonObject counts = new JsonObject();
+        countsByType.forEach((type, count) -> counts.addProperty(type.toString(), count));
+        return counts;
     }
 
-    private static JsonArray ingredients(Recipe<?> recipe) {
-        JsonArray all = new JsonArray();
-        for (Ingredient ingredient : recipe.getIngredients()) {
-            JsonArray matching = new JsonArray();
-            for (ItemStack stack : ingredient.getItems()) {
-                matching.add(itemId(stack));
+    private static JsonArray ids(List<NamespacedId> values) {
+        JsonArray array = new JsonArray();
+        values.forEach(value -> array.add(value.toString()));
+        return array;
+    }
+
+    private static JsonArray problems(List<HarvestProblem> values) {
+        JsonArray array = new JsonArray();
+        for (HarvestProblem problem : values) {
+            JsonObject entry = new JsonObject();
+            entry.addProperty("id", problem.recipeId().toString());
+            entry.addProperty("type", problem.recipeType().toString());
+            entry.addProperty("reason", problem.reason());
+            array.add(entry);
+        }
+        return array;
+    }
+
+    private static JsonArray nodes(List<RecipeNode> values) {
+        JsonArray array = new JsonArray();
+        for (RecipeNode node : values) {
+            JsonObject entry = new JsonObject();
+            entry.addProperty("id", node.recipeId().toString());
+            entry.addProperty("type", node.recipeType().toString());
+            entry.addProperty("duration_ticks", node.durationTicks());
+            entry.addProperty("heat", node.heat().name().toLowerCase(java.util.Locale.ROOT));
+            entry.add("inputs", inputs(node.inputs()));
+            entry.add("outputs", outputs(node.outputs()));
+            array.add(entry);
+        }
+        return array;
+    }
+
+    private static JsonArray inputs(List<InputStack> values) {
+        JsonArray array = new JsonArray();
+        for (InputStack input : values) {
+            JsonObject entry = new JsonObject();
+            entry.addProperty("representative", input.representative().id().toString());
+            entry.addProperty("amount", input.amount());
+            entry.addProperty("consumed", input.consumed());
+            entry.addProperty("fluid", input.fluid());
+            if (input.accepted().size() > 1) {
+                JsonArray accepted = new JsonArray();
+                input.accepted().forEach(item -> accepted.add(item.id().toString()));
+                entry.add("accepted", accepted);
             }
-            all.add(matching);
+            array.add(entry);
         }
-        return all;
+        return array;
     }
 
-    private static ItemStack primaryResult(Recipe<?> recipe, HolderLookup.Provider registries) {
-        try {
-            return recipe.getResultItem(registries);
-        } catch (RuntimeException e) {
-            return ItemStack.EMPTY;
+    private static JsonArray outputs(List<OutputStack> values) {
+        JsonArray array = new JsonArray();
+        for (OutputStack output : values) {
+            ItemKey item = output.item();
+            JsonObject entry = new JsonObject();
+            entry.addProperty("item", item.id().toString());
+            entry.addProperty("count", output.count());
+            entry.addProperty("chance", output.chance());
+            entry.addProperty("expected", output.expectedPerOperation());
+            entry.addProperty("fluid", item.fluid());
+            array.add(entry);
         }
-    }
-
-    private static String typeId(Recipe<?> recipe) {
-        ResourceLocation key = BuiltInRegistries.RECIPE_TYPE.getKey(recipe.getType());
-        return key == null
-               ? UNKNOWN
-               : key.toString();
-    }
-
-    private static String itemId(ItemStack stack) {
-        ResourceLocation key = BuiltInRegistries.ITEM.getKey(stack.getItem());
-        return key == null
-               ? UNKNOWN
-               : key.toString();
+        return array;
     }
 
     private static void writeDump(Path target, JsonObject dump) throws IOException {
