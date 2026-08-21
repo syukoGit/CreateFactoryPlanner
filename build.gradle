@@ -20,3 +20,60 @@ subprojects {
         useJUnitPlatform()
     }
 }
+
+abstract class ForbiddenImportsCheck extends DefaultTask {
+
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    abstract ConfigurableFileCollection getSources()
+
+    @Input
+    abstract ListProperty<String> getForbiddenPackages()
+
+    @OutputFile
+    abstract RegularFileProperty getReport()
+
+    @TaskAction
+    void verify() {
+        var packages = forbiddenPackages.get()
+        var pattern = ~/^\s*import\s+(static\s+)?(${packages.collect { it.replace('.', '\\.') }.join('|')})\./
+        var offenders = sources.files
+                .findAll { it.isFile() && it.readLines().any { line -> pattern.matcher(line).find() } }
+                .collect { it.path }
+                .sort()
+
+        report.get().asFile.text = offenders.join('\n')
+
+        if (!offenders.isEmpty()) {
+            throw new GradleException("forbidden imports of ${packages.join(', ')}:\n"
+                    + offenders.collect { "  $it" }.join('\n'))
+        }
+    }
+}
+
+project(':planner-core') {
+    var forbiddenImports = tasks.register('checkForbiddenImports', ForbiddenImportsCheck) {
+        sources.from fileTree('src') { include '**/*.java' }
+        forbiddenPackages = ['net.minecraft', 'net.neoforged', 'com.simibubi']
+        report = layout.buildDirectory.file('reports/forbidden-imports.txt')
+    }
+
+    tasks.named('check') {
+        dependsOn forbiddenImports
+    }
+}
+
+project(':neoforge') {
+    var forbiddenImports = tasks.register('checkForbiddenImports', ForbiddenImportsCheck) {
+        sources.from fileTree('src/main/java') {
+            include '**/*.java'
+            exclude '**/data/**'
+        }
+        forbiddenPackages = ['com.simibubi']
+        report = layout.buildDirectory.file('reports/forbidden-imports.txt')
+    }
+
+    tasks.named('check') {
+        dependsOn forbiddenImports
+    }
+}

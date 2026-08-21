@@ -47,30 +47,3 @@ jobs:
             */build/reports/tests/
             */build/test-results/
           if-no-files-found: ignore
-
-  boundaries:
-    name: Architecture boundaries
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: core must not import net.minecraft
-        run: |
-          dir=planner-core/src/main/java/fr/syuko/createfactoryplanner/core
-          [ -d "$dir" ] || exit 0
-          ! grep -rl "net\.minecraft" "$dir"
-
-      - name: gui and app must not import com.simibubi
-        run: |
-          dirs=""
-          for d in gui app; do
-            [ -d "neoforge/src/main/java/fr/syuko/createfactoryplanner/$d" ] && dirs="$dirs neoforge/src/main/java/fr/syuko/createfactoryplanner/$d"
-          done
-          [ -n "$dirs" ] || exit 0
-          ! grep -rl "com\.simibubi" $dirs
-
-      - name: com.simibubi only inside data
-        run: |
-          ! grep -rl "com\.simibubi" --include="*.java" neoforge/src/main/java/fr/syuko/createfactoryplanner/ \
-            | grep -v "/data/"

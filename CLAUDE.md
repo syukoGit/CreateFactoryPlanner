@@ -162,22 +162,24 @@ translating them into game objects is entirely the mod module's job.
 - **`integration/`** — `EmiIntegration`, `JeiIntegration`, both optional.
 
 **Golden rule: `planner-core` must never import `net.minecraft.*` or `net.neoforged.*`.** That is what makes the engine
-testable without launching the game. The module split makes it structural: `planner-core` declares no Minecraft
-dependency, so such an import cannot compile. `T-401` adds the build check that also covers
-`com.simibubi` outside `neoforge/src/main/java/fr/syuko/createfactoryplanner/data/`. Until it lands, enforce by grep —
-all three must return nothing:
+testable without launching the game. The module split makes it structural — `planner-core` declares no Minecraft
+dependency, so such an import cannot compile — and `checkForbiddenImports` (`T-401`) enforces the rest:
 
 ```bash
-grep -rl "net\.minecraft\|net\.neoforged" planner-core/src/main/java/
+./gradlew check
 ```
 
-```bash
-grep -rl "com\.simibubi" planner-core/src/main/java/ neoforge/src/main/java/fr/syuko/createfactoryplanner/gui/
-```
+The task is declared once, in the root [build.gradle](build.gradle), and registered on both modules. It scans imports,
+never call sites, so a fully-qualified name would slip through — that is a deliberate trade for a check that costs
+milliseconds. Two rules, and the second one is the one that gets forgotten:
 
-```bash
-grep -rl "com\.simibubi" --include="*.java" neoforge/src/main/java/fr/syuko/createfactoryplanner/ | grep -v "/data/"
-```
+| Module          | Refused                                                                             |
+|-----------------|-------------------------------------------------------------------------------------|
+| `:planner-core` | `net.minecraft`, `net.neoforged`, `com.simibubi`                                    |
+| `:neoforge`     | `com.simibubi` anywhere outside `src/main/java/fr/syuko/createfactoryplanner/data/` |
+
+Adding a package to a rule means editing `forbiddenPackages` in the root build file — there is no second copy of the
+rule in CI to keep in sync.
 
 ### The graph model
 
