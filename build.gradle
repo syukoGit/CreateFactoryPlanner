@@ -1,145 +1,22 @@
-plugins {
-    id 'java-library'
-    id 'idea'
-    id 'net.neoforged.moddev' version '2.0.143'
-}
+subprojects {
+    apply plugin: 'java-library'
 
-version = mod_version
-group = mod_group_id
+    version = mod_version
+    group = mod_group_id
 
-base {
-    archivesName = mod_id
-}
+    java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
-repositories {
-    mavenCentral()
-    maven { url = 'https://maven.createmod.net' }
-    maven { url = 'https://mvn.devos.one/snapshots' }
-    maven { url = 'https://maven.terraformersmc.com/releases' }
-    maven { url = 'https://maven.blamejared.com' }
-    maven {
-        url = 'https://api.modrinth.com/maven'
-        content { includeGroup 'maven.modrinth' }
-    }
-}
-
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
-
-configurations {
-    devMods {
-        canBeConsumed = false
-        transitive = false
-    }
-    devModsAddons {
-        canBeConsumed = false
-        transitive = false
-    }
-}
-
-var devModsDirectory = layout.projectDirectory.dir("run/mods")
-
-var installDevMods = tasks.register("installDevMods", Sync) {
-    from configurations.devMods
-    into devModsDirectory
-}
-
-var installDevModsWithAddons = tasks.register("installDevModsWithAddons", Sync) {
-    from configurations.devMods
-    from configurations.devModsAddons
-    into devModsDirectory
-}
-
-neoForge {
-    version = project.neo_version
-
-    parchment {
-        mappingsVersion = project.parchment_mappings_version
-        minecraftVersion = project.parchment_minecraft_version
+    repositories {
+        mavenCentral()
     }
 
-    runs {
-        client {
-            client()
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-            taskBefore installDevMods
-        }
-
-        clientWithAddons {
-            client()
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-            taskBefore installDevModsWithAddons
-        }
-
-        server {
-            server()
-            programArgument '--nogui'
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-            taskBefore installDevMods
-        }
-
-        gameTestServer {
-            type = "gameTestServer"
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-            taskBefore installDevMods
-        }
-
-        configureEach {
-            logLevel = org.slf4j.event.Level.DEBUG
-            gameDirectory = layout.projectDirectory.dir("run")
-        }
+    dependencies {
+        testImplementation platform("org.junit:junit-bom:${junit_version}")
+        testImplementation 'org.junit.jupiter:junit-jupiter'
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     }
 
-    mods {
-        "${mod_id}" {
-            sourceSet(sourceSets.main)
-        }
-    }
-}
-
-dependencies {
-    compileOnly "com.simibubi.create:create-1.21.1:${create_version}"
-
-    devMods "com.simibubi.create:create-1.21.1:${create_version}"
-    devMods "dev.emi:emi-neoforge:${emi_version}"
-    devMods "mezz.jei:jei-1.21.1-neoforge:${jei_version}"
-
-    devModsAddons "maven.modrinth:create-connected:${create_connected_version}"
-    devModsAddons "maven.modrinth:create-ultimate-factory:${create_ultimate_factory_version}"
-
-    testImplementation platform("org.junit:junit-bom:${junit_version}")
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
-
-tasks.named('test', Test) {
-    useJUnitPlatform()
-}
-
-var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
-    var replaceProperties = [minecraft_version      : minecraft_version,
-                             minecraft_version_range: minecraft_version_range,
-                             neo_version            : neo_version,
-                             neo_version_range      : neo_version_range,
-                             loader_version_range   : loader_version_range,
-                             mod_id                 : mod_id,
-                             mod_name               : mod_name,
-                             mod_license            : mod_license,
-                             mod_version            : mod_version,
-                             mod_authors            : mod_authors,
-                             mod_description        : mod_description,
-                             create_version_range   : create_version_range]
-    inputs.properties replaceProperties
-    expand replaceProperties
-    from "src/main/templates"
-    into "build/generated/sources/modMetadata"
-}
-
-sourceSets.main.resources.srcDir generateModMetadata
-neoForge.ideSyncTask generateModMetadata
-
-idea {
-    module {
-        downloadSources = true
-        downloadJavadoc = true
+    tasks.named('test', Test) {
+        useJUnitPlatform()
     }
 }
