@@ -12,6 +12,7 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public final class SequencedAssemblyRecipeReader implements RawRecipeReader {
@@ -40,8 +41,7 @@ public final class SequencedAssemblyRecipeReader implements RawRecipeReader {
     }
 
     private static boolean isTransitional(Ingredient ingredient, String transitional) {
-        ItemStack[] items = ingredient.getItems();
-        return items.length == 1 && transitional.equals(RawRecipes.itemIdOf(items[0]));
+        return Arrays.stream(ingredient.getItems()).map(RawRecipes::itemIdOf).anyMatch(transitional::equals);
     }
 
     @Override
