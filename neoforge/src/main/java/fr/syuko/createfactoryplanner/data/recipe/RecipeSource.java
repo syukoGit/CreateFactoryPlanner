@@ -6,5 +6,5 @@ public interface RecipeSource {
 
     List<RecipeTypeEntry> knownTypes();
 
-    List<RawRecipe> allRecipes();
+    List<HarvestedRecipe> allRecipes();
 }
