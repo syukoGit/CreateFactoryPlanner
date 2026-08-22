@@ -1,2 +1,4 @@
 {
+  "commands.createfactoryplanner.dump.recipes.success": "Dumped %s recipes over %s types, %s problems, into %s",
+  "commands.createfactoryplanner.dump.recipes.failed": "Recipe dump failed: %s"
 }

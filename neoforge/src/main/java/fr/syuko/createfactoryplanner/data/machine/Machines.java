@@ -27,6 +27,8 @@ public final class Machines {
 
     public static final MachineId ITEM_DRAIN = new MachineId("item_drain");
 
+    public static final MachineId SEQUENCED_ASSEMBLY = new MachineId("sequenced_assembly");
+
     private static final Set<MachineId> ALL = Set.copyOf(List.of(MILLSTONE,
                                                                  CRUSHING_WHEELS,
                                                                  MECHANICAL_PRESS,
@@ -36,7 +38,8 @@ public final class Machines {
                                                                  ENCASED_FAN,
                                                                  DEPLOYER,
                                                                  SPOUT,
-                                                                 ITEM_DRAIN));
+                                                                 ITEM_DRAIN,
+                                                                 SEQUENCED_ASSEMBLY));
 
     private Machines() {
     }

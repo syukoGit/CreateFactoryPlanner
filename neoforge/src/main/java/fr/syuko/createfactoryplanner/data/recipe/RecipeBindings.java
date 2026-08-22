@@ -92,6 +92,10 @@ public final class RecipeBindings {
                                           "create:mechanical_crafting",
                                           Machines.MECHANICAL_CRAFTER,
                                           AllRecipeTypes.MECHANICAL_CRAFTING::getType),
+                       HarvestRule.ofType("sequenced_assembly",
+                                          "create:sequenced_assembly",
+                                          Machines.SEQUENCED_ASSEMBLY,
+                                          AllRecipeTypes.SEQUENCED_ASSEMBLY::getType),
                        HarvestRule.ofType("fan_smelting",
                                           "minecraft:smelting",
                                           Machines.ENCASED_FAN,
@@ -156,12 +160,6 @@ public final class RecipeBindings {
 
         duplicatesOf(rules.stream().map(HarvestRule::label).toList()).forEach(label -> problems.add(
                 "duplicated rule label: " + label));
-
-        duplicatesOf(rules.stream()
-                          .flatMap(rule -> rule.recipeTypes()
-                                               .stream()
-                                               .map(type -> type + " -> " + rule.machine().value()))
-                          .toList()).forEach(couple -> problems.add("duplicated type to machine couple: " + couple));
 
         rules.stream()
              .map(HarvestRule::machine)

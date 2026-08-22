@@ -16,7 +16,8 @@ public final class ClientRecipeSource implements RecipeSource {
 
     private static final List<RawRecipeReader> READERS = List.of(new ProcessingRecipeReader(),
                                                                  new CraftingRecipeReader(),
-                                                                 new SingleStepRecipeReader());
+                                                                 new SingleStepRecipeReader(),
+                                                                 new SequencedAssemblyRecipeReader());
 
     private final HarvestContext context;
 
@@ -36,12 +37,14 @@ public final class ClientRecipeSource implements RecipeSource {
 
     @Override
     public List<RecipeTypeEntry> knownTypes() {
+        Set<String> bound = RecipeBindings.boundRecipeTypes();
         List<RecipeTypeEntry> entries = new ArrayList<>();
         for (AllRecipeTypes type : AllRecipeTypes.values()) {
             List<RecipeHolder<?>> holders = holdersOf(type.getType());
             entries.add(new RecipeTypeEntry(type.getId().toString(),
                                             registeredTypeIdOf(type),
                                             ownsItsType(type),
+                                            bound.contains(registeredTypeIdOf(type)),
                                             holders.size(),
                                             (int) holders.stream().filter(ClientRecipeSource::isAutomatable).count()));
         }
