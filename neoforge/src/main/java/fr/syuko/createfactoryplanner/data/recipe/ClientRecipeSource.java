@@ -14,7 +14,8 @@ import java.util.*;
 
 public final class ClientRecipeSource implements RecipeSource {
 
-    private static final List<RawRecipeReader> READERS = List.of(new ProcessingRecipeReader(),
+    private static final List<RawRecipeReader> READERS = List.of(new ItemApplicationRecipeReader(),
+                                                                 new ProcessingRecipeReader(),
                                                                  new CraftingRecipeReader(),
                                                                  new SingleStepRecipeReader(),
                                                                  new SequencedAssemblyRecipeReader());
