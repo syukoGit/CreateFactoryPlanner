@@ -12,7 +12,7 @@ consistency; every structural decision stays with the player.
 Two documents are the source of truth. Read both before planning any feature; amend the spec first when a product
 decision changes, then the plan, then the code.
 
-- **[create-factory-planner-spec-fonctionnelle-v0.5.2.md](plans/create-factory-planner-spec-fonctionnelle-v0.5.2.md)** —
+- **[create-factory-planner-spec-fonctionnelle-v0.5.3.md](plans/create-factory-planner-spec-fonctionnelle-v0.5.3.md)** —
   functional spec. Features `F-xx`, interfaces `I-xx`, calculation rules `R-xx`, settled decisions `D-xxx`, open
   questions `Q-xx`. **Functional only, no implementation.**
 - **[create-factory-planner-plan-implementation.md](plans/create-factory-planner-plan-implementation.md)** —
