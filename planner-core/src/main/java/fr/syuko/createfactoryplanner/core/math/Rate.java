@@ -27,6 +27,10 @@ public final class Rate implements Comparable<Rate> {
         return canonical(amount, durationTicks, false);
     }
 
+    public static Rate ratio(long numerator, long denominator) {
+        return canonical(numerator, denominator, false);
+    }
+
     public static Rate of(long whole) {
         return canonical(whole, 1, false);
     }
