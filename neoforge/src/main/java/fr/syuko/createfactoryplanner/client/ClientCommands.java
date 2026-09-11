@@ -1,6 +1,7 @@
 package fr.syuko.createfactoryplanner.client;
 
 import fr.syuko.createfactoryplanner.CreateFactoryPlanner;
+import fr.syuko.createfactoryplanner.command.CatalogDumpCommand;
 import fr.syuko.createfactoryplanner.command.RecipeDumpCommand;
 
 import net.neoforged.api.distmarker.Dist;
@@ -17,5 +18,6 @@ public final class ClientCommands {
     @SubscribeEvent
     public static void onRegisterClientCommands(RegisterClientCommandsEvent event) {
         RecipeDumpCommand.register(event.getDispatcher());
+        CatalogDumpCommand.register(event.getDispatcher());
     }
 }

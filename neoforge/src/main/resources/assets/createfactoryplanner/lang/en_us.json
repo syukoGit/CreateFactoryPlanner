@@ -1,4 +1,6 @@
 {
   "commands.createfactoryplanner.dump.recipes.success": "Dumped %s recipes over %s types, %s problems, into %s",
-  "commands.createfactoryplanner.dump.recipes.failed": "Recipe dump failed: %s"
+  "commands.createfactoryplanner.dump.recipes.failed": "Recipe dump failed: %s",
+  "commands.createfactoryplanner.dump.catalog.success": "Dumped %s machines, %s with a readable stress impact, %s unread, into %s",
+  "commands.createfactoryplanner.dump.catalog.failed": "Catalog dump failed: %s"
 }

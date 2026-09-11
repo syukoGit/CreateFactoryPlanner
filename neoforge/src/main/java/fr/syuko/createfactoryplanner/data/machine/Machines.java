@@ -29,22 +29,28 @@ public final class Machines {
 
     public static final MachineId SEQUENCED_ASSEMBLY = new MachineId("sequenced_assembly");
 
-    private static final Set<MachineId> ALL = Set.copyOf(List.of(MILLSTONE,
-                                                                 CRUSHING_WHEELS,
-                                                                 MECHANICAL_PRESS,
-                                                                 MECHANICAL_MIXER,
-                                                                 MECHANICAL_SAW,
-                                                                 MECHANICAL_CRAFTER,
-                                                                 ENCASED_FAN,
-                                                                 DEPLOYER,
-                                                                 SPOUT,
-                                                                 ITEM_DRAIN,
-                                                                 SEQUENCED_ASSEMBLY));
+    private static final List<MachineId> ORDERED = List.of(MILLSTONE,
+                                                           CRUSHING_WHEELS,
+                                                           MECHANICAL_PRESS,
+                                                           MECHANICAL_MIXER,
+                                                           MECHANICAL_SAW,
+                                                           MECHANICAL_CRAFTER,
+                                                           ENCASED_FAN,
+                                                           DEPLOYER,
+                                                           SPOUT,
+                                                           ITEM_DRAIN,
+                                                           SEQUENCED_ASSEMBLY);
+
+    private static final Set<MachineId> ALL = Set.copyOf(ORDERED);
 
     private Machines() {
     }
 
     public static Set<MachineId> all() {
         return ALL;
+    }
+
+    public static List<MachineId> ordered() {
+        return ORDERED;
     }
 }

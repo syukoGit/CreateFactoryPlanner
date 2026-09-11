@@ -1,0 +1,10 @@
+dependencies {
+    implementation "com.google.code.gson:gson:${gson_version}"
+}
+
+tasks.register('cli', JavaExec) {
+    group = 'application'
+    classpath = sourceSets.main.runtimeClasspath
+    workingDir = rootProject.projectDir
+    mainClass = 'fr.syuko.createfactoryplanner.core.cli.PlannerCli'
+}
