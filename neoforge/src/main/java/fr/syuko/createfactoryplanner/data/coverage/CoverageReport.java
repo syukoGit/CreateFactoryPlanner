@@ -3,7 +3,6 @@ package fr.syuko.createfactoryplanner.data.coverage;
 import fr.syuko.createfactoryplanner.core.io.Coverage;
 import fr.syuko.createfactoryplanner.core.io.MachineEntry;
 import fr.syuko.createfactoryplanner.core.io.RecipeEntry;
-import fr.syuko.createfactoryplanner.core.machine.MachineCatalog;
 import fr.syuko.createfactoryplanner.data.recipe.HarvestedRecipe;
 import fr.syuko.createfactoryplanner.data.recipe.RecipeTypeEntry;
 
@@ -24,11 +23,10 @@ public final class CoverageReport {
     public static Coverage of(List<MachineEntry> machines,
                               List<RecipeEntry> recipes,
                               List<RecipeTypeEntry> types,
-                              List<HarvestedRecipe> harvested,
-                              MachineCatalog models) {
+                              List<HarvestedRecipe> harvested) {
         return new Coverage(typesWithoutMachine(types),
                             machinesWithout(machines, entry -> !entry.readsItsStressImpact()),
-                            machinesWithout(machines, entry -> models.model(entry.machine()).isEmpty()),
+                            machinesWithoutThroughputModel(machines),
                             unreadable(harvested),
                             pendingRules(recipes));
     }
@@ -43,6 +41,10 @@ public final class CoverageReport {
 
     private static List<String> machinesWithout(List<MachineEntry> machines, Predicate<MachineEntry> gap) {
         return machines.stream().filter(gap).map(MachineEntry::id).toList();
+    }
+
+    private static List<String> machinesWithoutThroughputModel(List<MachineEntry> machines) {
+        return machines.stream().map(MachineEntry::id).toList();
     }
 
     private static List<String> unreadable(List<HarvestedRecipe> harvested) {

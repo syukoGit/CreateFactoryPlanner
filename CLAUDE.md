@@ -23,10 +23,17 @@ history only — never follow them for implementation order.
 
 Both documents are written in French; the code, the identifiers and `en_us` are English (D-020).
 
-**The repository is at the start of lot A.** `:neoforge` harvests recipes; `planner-core` carries `Rate`, the opaque
-identifiers, the recipe and machine DTOs, `ThroughputModel` and the bipartite graph — and nothing calls anything yet.
-Everything under Architecture below describes the *target* structure, not what is on disk. Do not assume a class exists
-because it is named here.
+**Lot A is done and the code has since been pruned to what is actually called.** `:neoforge` harvests recipes and
+writes the catalog; `planner-core` carries `Rate`/`RateUnit`, the four opaque identifiers, the recipe DTOs and their
+normalizer, `MachineProfile`, the catalog and its codec, and the CLI — **and nothing else**. The bipartite graph
+(`Plan`, `Node`, `Link`, `Port`, …), `ThroughputModel`, `MachineSettings`, `ParamDescriptor`, `MachineCatalog`,
+`RecipeCatalog` and `MachineRegistry` **have been deleted**: they had no caller outside their own tests, or wrapped a
+value the caller already had. They come back in the slice that first needs them — `ThroughputModel` and
+`MachineRegistry` in B1, the graph in C1/C2, the catalog interfaces in F2.
+
+Everything under Architecture below describes the *target* structure, not what is on disk. **Do not assume a class
+exists because it is named here** — check. And do not re-create one ahead of its slice: the implementation plan's §1.4
+forbids writing code no caller consumes, and explicitly allows a later slice to change an earlier slice's signatures.
 
 The differentiating argument is that the mod reads recipes and stress values **from the game as installed**, so it stays
 correct on any modpack, addon or datapack — which no web calculator can guarantee. Never trade that away for hardcoded

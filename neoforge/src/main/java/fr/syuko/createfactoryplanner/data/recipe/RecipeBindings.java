@@ -180,11 +180,6 @@ public final class RecipeBindings {
         return rules().stream().flatMap(rule -> rule.recipeTypes().stream()).collect(Collectors.toUnmodifiableSet());
     }
 
-    public static List<RecipeTypeEntry> unboundTypes(List<RecipeTypeEntry> knownTypes) {
-        Set<String> bound = boundRecipeTypes();
-        return knownTypes.stream().filter(entry -> !bound.contains(entry.recipeType())).toList();
-    }
-
     private static boolean isSingleIngredientShapeless(Recipe<?> recipe) {
         return recipe instanceof CraftingRecipe && !(recipe instanceof ShapedRecipe) && recipe.getIngredients()
                                                                                               .size() == 1;

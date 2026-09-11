@@ -6,7 +6,6 @@ import com.mojang.brigadier.context.CommandContext;
 import fr.syuko.createfactoryplanner.core.io.Catalog;
 import fr.syuko.createfactoryplanner.core.io.CatalogJson;
 import fr.syuko.createfactoryplanner.data.catalog.CatalogCodec;
-import fr.syuko.createfactoryplanner.data.machine.MachineRegistry;
 import fr.syuko.createfactoryplanner.data.recipe.ClientRecipeSource;
 
 import net.minecraft.client.Minecraft;
@@ -70,7 +69,7 @@ public final class CatalogDumpCommand {
         long unread = catalog.machines().stream().filter(entry -> !entry.readsItsStressImpact()).count();
         return Component.translatable("commands.createfactoryplanner.dump.catalog.success",
                                       catalog.machines().size(),
-                                      MachineRegistry.of(catalog).profileCount(),
+                                      catalog.profiles().size(),
                                       unread,
                                       catalog.recipes().size(),
                                       catalog.recipes().stream().filter(entry -> !entry.isSettled()).count(),

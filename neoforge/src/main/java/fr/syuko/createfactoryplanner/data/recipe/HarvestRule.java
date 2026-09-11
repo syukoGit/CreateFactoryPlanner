@@ -93,10 +93,6 @@ public record HarvestRule(String label, List<String> recipeTypes, MachineId mach
         return gate.getAsBoolean();
     }
 
-    public boolean isConditional() {
-        return !configFlag.isEmpty();
-    }
-
     public interface Collector {
 
         List<RecipeHolder<?>> collect(HarvestContext context);

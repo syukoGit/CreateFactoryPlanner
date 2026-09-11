@@ -27,7 +27,7 @@ public final class RawRecipes {
         return BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
     }
 
-    public static String fluidIdOf(FluidStack stack) {
+    private static String fluidIdOf(FluidStack stack) {
         return BuiltInRegistries.FLUID.getKey(stack.getFluid()).toString();
     }
 

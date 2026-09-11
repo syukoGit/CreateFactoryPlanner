@@ -4,7 +4,6 @@ import fr.syuko.createfactoryplanner.CreateFactoryPlanner;
 import fr.syuko.createfactoryplanner.core.io.*;
 import fr.syuko.createfactoryplanner.data.coverage.CoverageReport;
 import fr.syuko.createfactoryplanner.data.machine.ConstantStore;
-import fr.syuko.createfactoryplanner.data.machine.MachineRegistry;
 import fr.syuko.createfactoryplanner.data.recipe.HarvestedRecipe;
 import fr.syuko.createfactoryplanner.data.recipe.RawRecipeTranslator;
 import fr.syuko.createfactoryplanner.data.recipe.RecipeSource;
@@ -33,11 +32,7 @@ public final class CatalogCodec {
         return new Catalog(withoutCoverage.meta(),
                            machines,
                            recipes,
-                           CoverageReport.of(machines,
-                                             recipes,
-                                             source.knownTypes(),
-                                             harvested,
-                                             MachineRegistry.of(withoutCoverage)));
+                           CoverageReport.of(machines, recipes, source.knownTypes(), harvested));
     }
 
     private static String versionOf(String modId) {
