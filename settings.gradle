@@ -11,3 +11,6 @@ plugins {
 }
 
 rootProject.name = 'CreateFactoryPlanner'
+
+include 'planner-core'
+include 'neoforge'

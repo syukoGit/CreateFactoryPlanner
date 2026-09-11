@@ -1,7 +1,0 @@
-{
-  "commands.createfactoryplanner.dump.recipes.success": "Dumped %s recipe nodes out of %s inspected recipes to %s",
-  "commands.createfactoryplanner.dump.recipes.unsupported": "%s recipe type(s) are not supported yet and were listed in the dump",
-  "commands.createfactoryplanner.dump.recipes.problems": "%s recipe(s) could not be converted, see the problems section of the dump",
-  "commands.createfactoryplanner.dump.recipes.unavailable": "No world loaded: recipes are only readable in game",
-  "commands.createfactoryplanner.dump.recipes.failed": "Recipe dump failed: %s"
-}
