@@ -90,11 +90,12 @@ public final class PlannerCli {
               .append(System.lineSeparator());
         for (MachineEntry entry : catalog.machines()) {
             report.append(String.format(Locale.ROOT,
-                                        "  %-20s rpm %3d..%-3d default %-3d %s%s%n",
+                                        "  %-20s rpm %3d..%-3d default %-3d %-9s %s%s%n",
                                         entry.id(),
                                         entry.minimumRpm(),
                                         entry.maximumRpm(),
                                         entry.defaultRpm(),
+                                        defaultRpmProvenance(entry),
                                         stress(entry),
                                         scalars(entry)));
         }
@@ -105,6 +106,10 @@ public final class PlannerCli {
         return entry.readsItsStressImpact()
                ? String.format(Locale.ROOT, "su/rpm %.2f", entry.stressImpactPerRpm())
                : "su/rpm unread";
+    }
+
+    private static String defaultRpmProvenance(MachineEntry entry) {
+        return "[" + entry.provenanceOf(MachineEntry.DEFAULT_RPM) + "]";
     }
 
     private static String scalars(MachineEntry entry) {

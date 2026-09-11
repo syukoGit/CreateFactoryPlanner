@@ -14,13 +14,20 @@ class PlannerCliTest {
 
     private static Catalog catalog() {
         return new Catalog(new CatalogMeta("2026-09-11T12:00:00Z", "minecraft:overworld", "0.1.0", "6.0.11-295", 2, 0),
-                           List.of(new MachineEntry("mechanical_mixer", 30, 256, 128, 4.0, Map.of()),
+                           List.of(new MachineEntry("mechanical_mixer",
+                                                    30,
+                                                    256,
+                                                    128,
+                                                    4.0,
+                                                    Map.of(),
+                                                    Map.of(MachineEntry.DEFAULT_RPM, Provenance.DEFAULT)),
                                    new MachineEntry("encased_fan",
                                                     0,
                                                     256,
                                                     128,
                                                     2.0,
-                                                    Map.of("fan_processing_time", 150L))),
+                                                    Map.of("fan_processing_time", 150L),
+                                                    Map.of(MachineEntry.DEFAULT_RPM, Provenance.USER))),
                            List.of(),
                            Coverage.NONE);
     }
@@ -32,12 +39,14 @@ class PlannerCliTest {
         assertTrue(report.contains("mechanical_mixer"));
         assertTrue(report.contains("30..256"));
         assertTrue(report.contains("fan_processing_time=150"));
+        assertTrue(report.contains("[DEFAULT]"));
+        assertTrue(report.contains("[USER]"));
     }
 
     @Test
     void saysWhenAStressImpactCouldNotBeRead() {
         Catalog unread = new Catalog(catalog().meta(),
-                                     List.of(new MachineEntry("spout", 0, 256, 128, null, Map.of())),
+                                     List.of(new MachineEntry("spout", 0, 256, 128, null, Map.of(), Map.of())),
                                      List.of(),
                                      Coverage.NONE);
         assertTrue(PlannerCli.machines(unread).contains("su/rpm unread"));

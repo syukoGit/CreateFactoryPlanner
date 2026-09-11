@@ -2,5 +2,8 @@
   "commands.createfactoryplanner.dump.recipes.success": "Dumped %s recipes over %s types, %s problems, into %s",
   "commands.createfactoryplanner.dump.recipes.failed": "Recipe dump failed: %s",
   "commands.createfactoryplanner.dump.catalog.success": "Dumped %s machines, %s with a readable stress impact, %s unread, and %s recipes of which %s pending a later rule, into %s",
-  "commands.createfactoryplanner.dump.catalog.failed": "Catalog dump failed: %s"
+  "commands.createfactoryplanner.dump.catalog.failed": "Catalog dump failed: %s",
+  "commands.createfactoryplanner.reload.success": "Reloaded overrides for %s machines from %s",
+  "commands.createfactoryplanner.reload.empty": "No override to apply, %s is absent or empty",
+  "commands.createfactoryplanner.reload.failed": "Could not read %s: %s"
 }

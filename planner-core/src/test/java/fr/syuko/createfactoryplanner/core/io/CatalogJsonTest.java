@@ -21,8 +21,8 @@ class CatalogJsonTest {
 
     private static Catalog catalog() {
         return new Catalog(new CatalogMeta("2026-09-11T12:00:00Z", "minecraft:overworld", "0.1.0", "6.0.11-295", 2, 0),
-                           List.of(new MachineEntry("mechanical_mixer", 30, 256, 128, 4.0, Map.of()),
-                                   new MachineEntry("spout", 0, 256, 128, null, Map.of("filling_time", 20L))),
+                           List.of(new MachineEntry("mechanical_mixer", 30, 256, 128, 4.0, Map.of(), Map.of()),
+                                   new MachineEntry("spout", 0, 256, 128, null, Map.of("filling_time", 20L), Map.of())),
                            List.of(),
                            Coverage.NONE);
     }
@@ -41,7 +41,7 @@ class CatalogJsonTest {
         assertTrue(read.machine(MIXER).orElseThrow().readsItsStressImpact());
         assertFalse(read.machine(SPOUT).orElseThrow().readsItsStressImpact());
 
-        MachineEntry registeredWithoutImpact = new MachineEntry("item_drain", 0, 256, 128, 0.0, Map.of());
+        MachineEntry registeredWithoutImpact = new MachineEntry("item_drain", 0, 256, 128, 0.0, Map.of(), Map.of());
         assertTrue(registeredWithoutImpact.readsItsStressImpact());
         assertEquals(0, registeredWithoutImpact.toProfile().orElseThrow().stressImpactPerRpm());
     }
