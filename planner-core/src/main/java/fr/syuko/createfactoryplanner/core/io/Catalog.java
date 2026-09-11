@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public record Catalog(CatalogMeta meta, List<MachineEntry> machines, List<RecipeEntry> recipes) {
+public record Catalog(CatalogMeta meta, List<MachineEntry> machines, List<RecipeEntry> recipes, Coverage coverage) {
 
     public Catalog {
         if (meta == null) {
@@ -21,6 +21,9 @@ public record Catalog(CatalogMeta meta, List<MachineEntry> machines, List<Recipe
         recipes = recipes == null
                   ? List.of()
                   : List.copyOf(recipes);
+        coverage = coverage == null
+                   ? Coverage.NONE
+                   : coverage;
     }
 
     public Optional<RecipeEntry> recipe(String id) {

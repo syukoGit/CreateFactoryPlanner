@@ -1,14 +1,13 @@
 package fr.syuko.createfactoryplanner.data.catalog;
 
 import fr.syuko.createfactoryplanner.CreateFactoryPlanner;
-import fr.syuko.createfactoryplanner.core.io.Catalog;
-import fr.syuko.createfactoryplanner.core.io.CatalogMeta;
-import fr.syuko.createfactoryplanner.core.io.MachineEntry;
-import fr.syuko.createfactoryplanner.core.io.RecipeEntry;
+import fr.syuko.createfactoryplanner.core.io.*;
+import fr.syuko.createfactoryplanner.data.coverage.CoverageReport;
 import fr.syuko.createfactoryplanner.data.machine.ConstantStore;
+import fr.syuko.createfactoryplanner.data.machine.MachineRegistry;
+import fr.syuko.createfactoryplanner.data.recipe.HarvestedRecipe;
 import fr.syuko.createfactoryplanner.data.recipe.RawRecipeTranslator;
 import fr.syuko.createfactoryplanner.data.recipe.RecipeSource;
-
 import net.neoforged.fml.ModList;
 
 import java.time.Instant;
@@ -23,13 +22,22 @@ public final class CatalogCodec {
 
     public static Catalog read(String world, RecipeSource source) {
         List<MachineEntry> machines = ConstantStore.readMachines();
-        List<RecipeEntry> recipes = source.allRecipes().stream().map(RawRecipeTranslator::translate).toList();
-        return new Catalog(new CatalogMeta(Instant.now().toString(),
-                                           world,
-                                           versionOf(CreateFactoryPlanner.MODID),
-                                           versionOf(CREATE),
-                                           machines.size(),
-                                           recipes.size()), machines, recipes);
+        List<HarvestedRecipe> harvested = source.allRecipes();
+        List<RecipeEntry> recipes = harvested.stream().map(RawRecipeTranslator::translate).toList();
+        Catalog withoutCoverage = new Catalog(new CatalogMeta(Instant.now().toString(),
+                                                              world,
+                                                              versionOf(CreateFactoryPlanner.MODID),
+                                                              versionOf(CREATE),
+                                                              machines.size(),
+                                                              recipes.size()), machines, recipes, Coverage.NONE);
+        return new Catalog(withoutCoverage.meta(),
+                           machines,
+                           recipes,
+                           CoverageReport.of(machines,
+                                             recipes,
+                                             source.knownTypes(),
+                                             harvested,
+                                             MachineRegistry.of(withoutCoverage)));
     }
 
     private static String versionOf(String modId) {

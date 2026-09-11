@@ -21,7 +21,8 @@ class PlannerCliTest {
                                                     128,
                                                     2.0,
                                                     Map.of("fan_processing_time", 150L))),
-                           List.of());
+                           List.of(),
+                           Coverage.NONE);
     }
 
     @Test
@@ -37,7 +38,8 @@ class PlannerCliTest {
     void saysWhenAStressImpactCouldNotBeRead() {
         Catalog unread = new Catalog(catalog().meta(),
                                      List.of(new MachineEntry("spout", 0, 256, 128, null, Map.of())),
-                                     List.of());
+                                     List.of(),
+                                     Coverage.NONE);
         assertTrue(PlannerCli.machines(unread).contains("su/rpm unread"));
         assertFalse(PlannerCli.machines(unread).contains("su/rpm 0.00"));
     }
@@ -69,7 +71,7 @@ class PlannerCliTest {
                                                List.of(new CatalystEntry(new ResourceEntry("create:sand_paper",
                                                                                            ResourceKind.ITEM), 1)),
                                                List.of());
-        String report = PlannerCli.recipe(new Catalog(catalog().meta(), List.of(), List.of(crushing)),
+        String report = PlannerCli.recipe(new Catalog(catalog().meta(), List.of(), List.of(crushing), Coverage.NONE),
                                           "create:crushing/iron_ore");
         assertTrue(report.contains("on crushing_wheels, 250 ticks"));
         assertTrue(report.contains("in   1 minecraft:iron_ore (+1 equivalents)"));
@@ -86,6 +88,27 @@ class PlannerCliTest {
                                                                                      "--catalog",
                                                                                      "nowhere/catalog.json")));
         assertTrue(missing.getMessage().contains("nowhere"));
+    }
+
+    @Test
+    void listsEveryGapItStillCarriesAndStaysSilentOnTheRest() {
+        Coverage gaps = new Coverage(List.of("create:pressing (12 recipes)"),
+                                     List.of("spout", "item_drain"),
+                                     List.of("millstone", "encased_fan"),
+                                     List.of(),
+                                     List.of("pending_sequence_rule: 4 recipes"));
+        String report = PlannerCli.coverage(new Catalog(catalog().meta(), List.of(), List.of(), gaps));
+        assertTrue(report.contains("6 gaps left"));
+        assertTrue(report.contains("machines with no throughput model (2)"));
+        assertTrue(report.contains("    encased_fan"));
+        assertTrue(report.contains("pending_sequence_rule: 4 recipes"));
+        assertFalse(report.contains("recipes no reader could read"));
+    }
+
+    @Test
+    void saysSoWhenNothingIsLeftUncovered() {
+        String report = PlannerCli.coverage(new Catalog(catalog().meta(), List.of(), List.of(), Coverage.NONE));
+        assertTrue(report.contains("nothing left uncovered"));
     }
 
     @Test

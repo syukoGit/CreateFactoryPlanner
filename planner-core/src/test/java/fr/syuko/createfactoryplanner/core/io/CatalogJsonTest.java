@@ -23,7 +23,8 @@ class CatalogJsonTest {
         return new Catalog(new CatalogMeta("2026-09-11T12:00:00Z", "minecraft:overworld", "0.1.0", "6.0.11-295", 2, 0),
                            List.of(new MachineEntry("mechanical_mixer", 30, 256, 128, 4.0, Map.of()),
                                    new MachineEntry("spout", 0, 256, 128, null, Map.of("filling_time", 20L))),
-                           List.of());
+                           List.of(),
+                           Coverage.NONE);
     }
 
     @Test
@@ -69,7 +70,7 @@ class CatalogJsonTest {
                                                                        Rate.ratio(5, 4).toString())),
                                                List.of(),
                                                List.of());
-        Catalog written = new Catalog(catalog().meta(), List.of(), List.of(crushing));
+        Catalog written = new Catalog(catalog().meta(), List.of(), List.of(crushing), Coverage.NONE);
         RecipeDto rebuilt = CatalogJson.read(CatalogJson.write(written))
                                        .recipe("create:crushing/obsidian")
                                        .orElseThrow()

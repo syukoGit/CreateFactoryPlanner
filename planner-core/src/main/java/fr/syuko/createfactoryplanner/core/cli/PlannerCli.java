@@ -17,6 +17,8 @@ public final class PlannerCli {
 
     private static final String RECIPE = "recipe";
 
+    private static final String COVERAGE = "coverage";
+
     private static final String CATALOG_OPTION = "--catalog";
 
     private static final String UNKNOWN = "unknown";
@@ -43,6 +45,9 @@ public final class PlannerCli {
         }
         if (RECIPE.equals(command)) {
             return recipe(CatalogJson.read(readCatalog(catalogPath(args))), recipeId(args));
+        }
+        if (COVERAGE.equals(command)) {
+            return coverage(CatalogJson.read(readCatalog(catalogPath(args))));
         }
         throw new IllegalArgumentException("unknown command " + command + System.lineSeparator() + usage());
     }
@@ -170,7 +175,31 @@ public final class PlannerCli {
                : "";
     }
 
+    static String coverage(Catalog catalog) {
+        Coverage coverage = catalog.coverage();
+        StringBuilder report = new StringBuilder();
+        report.append(coverage.isComplete()
+                      ? "nothing left uncovered"
+                      : coverage.gapCount() + " gaps left").append(System.lineSeparator());
+        appendGaps(report, "recipe types with no machine", coverage.recipeTypesWithoutMachine());
+        appendGaps(report, "machines whose stress impact could not be read", coverage.machinesWithoutStressImpact());
+        appendGaps(report, "machines with no throughput model", coverage.machinesWithoutThroughputModel());
+        appendGaps(report, "recipes no reader could read", coverage.unreadableRecipes());
+        appendGaps(report, "recipes waiting for a later rule", coverage.recipesPendingARule());
+        return report.toString();
+    }
+
+    private static void appendGaps(StringBuilder report, String title, List<String> gaps) {
+        if (gaps.isEmpty()) {
+            return;
+        }
+        report.append("  ").append(title).append(" (").append(gaps.size()).append(')').append(System.lineSeparator());
+        for (String gap : gaps) {
+            report.append("    ").append(gap).append(System.lineSeparator());
+        }
+    }
+
     private static String usage() {
-        return "usage: machines --catalog <file>" + System.lineSeparator() + "       recipe <id> --catalog <file>";
+        return "usage: machines --catalog <file>" + System.lineSeparator() + "       recipe <id> --catalog <file>" + System.lineSeparator() + "       coverage --catalog <file>";
     }
 }
