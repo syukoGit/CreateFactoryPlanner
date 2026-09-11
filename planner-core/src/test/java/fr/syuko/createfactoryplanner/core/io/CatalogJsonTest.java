@@ -1,7 +1,11 @@
 package fr.syuko.createfactoryplanner.core.io;
 
 import fr.syuko.createfactoryplanner.core.machine.MachineProfile;
+import fr.syuko.createfactoryplanner.core.math.Rate;
 import fr.syuko.createfactoryplanner.core.model.MachineId;
+import fr.syuko.createfactoryplanner.core.model.ResourceId;
+import fr.syuko.createfactoryplanner.core.model.ResourceKind;
+import fr.syuko.createfactoryplanner.core.recipe.RecipeDto;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -16,9 +20,10 @@ class CatalogJsonTest {
     private static final MachineId SPOUT = new MachineId("spout");
 
     private static Catalog catalog() {
-        return new Catalog(new CatalogMeta("2026-09-11T12:00:00Z", "minecraft:overworld", "0.1.0", "6.0.11-295", 2),
+        return new Catalog(new CatalogMeta("2026-09-11T12:00:00Z", "minecraft:overworld", "0.1.0", "6.0.11-295", 2, 0),
                            List.of(new MachineEntry("mechanical_mixer", 30, 256, 128, 4.0, Map.of()),
-                                   new MachineEntry("spout", 0, 256, 128, null, Map.of("filling_time", 20L))));
+                                   new MachineEntry("spout", 0, 256, 128, null, Map.of("filling_time", 20L))),
+                           List.of());
     }
 
     @Test
@@ -47,6 +52,31 @@ class CatalogJsonTest {
         assertEquals(1, profiles.size());
         assertEquals(30, profiles.get(MIXER).minimumRpm());
         assertTrue(read.machine(SPOUT).orElseThrow().toProfile().isEmpty());
+    }
+
+    @Test
+    void carriesAFractionalAmountThroughJsonWithoutLosingItsRational() {
+        RecipeEntry crushing = new RecipeEntry("create:crushing/obsidian",
+                                               List.of("crushing_wheels"),
+                                               400,
+                                               List.of(new IngredientEntry(new ResourceEntry("minecraft:obsidian",
+                                                                                             ResourceKind.ITEM),
+                                                                           Rate.ratio(1, 4).toString(),
+                                                                           List.of("minecraft:obsidian"))),
+                                               List.of(new OutputEntry(new ResourceEntry("create:powdered_obsidian",
+                                                                                         ResourceKind.ITEM),
+                                                                       1,
+                                                                       Rate.ratio(5, 4).toString())),
+                                               List.of());
+        Catalog written = new Catalog(catalog().meta(), List.of(), List.of(crushing));
+        RecipeDto rebuilt = CatalogJson.read(CatalogJson.write(written))
+                                       .recipe("create:crushing/obsidian")
+                                       .orElseThrow()
+                                       .toDto();
+        assertEquals(Rate.ratio(1, 4),
+                     rebuilt.ingredient(ResourceId.item("minecraft:obsidian")).orElseThrow().amountPerOperation());
+        assertEquals(Rate.ratio(5, 4),
+                     rebuilt.output(ResourceId.item("create:powdered_obsidian")).orElseThrow().expectedPerOperation());
     }
 
     @Test

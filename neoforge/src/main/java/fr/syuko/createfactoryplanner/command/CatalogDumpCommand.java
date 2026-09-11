@@ -7,6 +7,7 @@ import fr.syuko.createfactoryplanner.core.io.Catalog;
 import fr.syuko.createfactoryplanner.core.io.CatalogJson;
 import fr.syuko.createfactoryplanner.data.catalog.CatalogCodec;
 import fr.syuko.createfactoryplanner.data.machine.MachineRegistry;
+import fr.syuko.createfactoryplanner.data.recipe.ClientRecipeSource;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -39,7 +40,7 @@ public final class CatalogDumpCommand {
     private static int dumpCatalog(CommandContext<CommandSourceStack> context) {
         CommandSourceStack source = context.getSource();
         try {
-            Catalog catalog = CatalogCodec.read(worldName());
+            Catalog catalog = CatalogCodec.read(worldName(), ClientRecipeSource.ofCurrentConnection());
             Path file = write(catalog);
             source.sendSuccess(() -> success(catalog, file), false);
             return catalog.machines().size();
@@ -71,6 +72,8 @@ public final class CatalogDumpCommand {
                                       catalog.machines().size(),
                                       MachineRegistry.of(catalog).profileCount(),
                                       unread,
+                                      catalog.recipes().size(),
+                                      catalog.recipes().stream().filter(entry -> !entry.isSettled()).count(),
                                       Component.literal(file.getFileName().toString())
                                                .withStyle(style -> style.withUnderlined(true)
                                                                         .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE,

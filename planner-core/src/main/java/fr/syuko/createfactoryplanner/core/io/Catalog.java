@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public record Catalog(CatalogMeta meta, List<MachineEntry> machines) {
+public record Catalog(CatalogMeta meta, List<MachineEntry> machines, List<RecipeEntry> recipes) {
 
     public Catalog {
         if (meta == null) {
@@ -18,6 +18,13 @@ public record Catalog(CatalogMeta meta, List<MachineEntry> machines) {
             throw new IllegalArgumentException("a catalog must carry a machine list, even an empty one");
         }
         machines = List.copyOf(machines);
+        recipes = recipes == null
+                  ? List.of()
+                  : List.copyOf(recipes);
+    }
+
+    public Optional<RecipeEntry> recipe(String id) {
+        return recipes.stream().filter(entry -> entry.id().equals(id)).findFirst();
     }
 
     public Optional<MachineEntry> machine(MachineId id) {

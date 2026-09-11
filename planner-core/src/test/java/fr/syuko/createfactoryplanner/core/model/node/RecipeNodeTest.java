@@ -27,7 +27,7 @@ class RecipeNodeTest {
 
     private static RecipeDto polishing() {
         return new RecipeDto(new RecipeId("create:deploying/polished"),
-                             List.of(new IngredientDto(ORE, 1), new IngredientDto(WATER, 200)),
+                             List.of(IngredientDto.of(ORE, 1), IngredientDto.of(WATER, 200)),
                              List.of(new OutputDto(POWDER, 1, Rate.ratio(5, 4))),
                              0);
     }

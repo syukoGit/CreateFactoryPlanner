@@ -4,7 +4,10 @@ import fr.syuko.createfactoryplanner.CreateFactoryPlanner;
 import fr.syuko.createfactoryplanner.core.io.Catalog;
 import fr.syuko.createfactoryplanner.core.io.CatalogMeta;
 import fr.syuko.createfactoryplanner.core.io.MachineEntry;
+import fr.syuko.createfactoryplanner.core.io.RecipeEntry;
 import fr.syuko.createfactoryplanner.data.machine.ConstantStore;
+import fr.syuko.createfactoryplanner.data.recipe.RawRecipeTranslator;
+import fr.syuko.createfactoryplanner.data.recipe.RecipeSource;
 
 import net.neoforged.fml.ModList;
 
@@ -18,13 +21,15 @@ public final class CatalogCodec {
     private CatalogCodec() {
     }
 
-    public static Catalog read(String world) {
+    public static Catalog read(String world, RecipeSource source) {
         List<MachineEntry> machines = ConstantStore.readMachines();
+        List<RecipeEntry> recipes = source.allRecipes().stream().map(RawRecipeTranslator::translate).toList();
         return new Catalog(new CatalogMeta(Instant.now().toString(),
                                            world,
                                            versionOf(CreateFactoryPlanner.MODID),
                                            versionOf(CREATE),
-                                           machines.size()), machines);
+                                           machines.size(),
+                                           recipes.size()), machines, recipes);
     }
 
     private static String versionOf(String modId) {

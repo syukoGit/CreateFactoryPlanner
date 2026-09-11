@@ -4,6 +4,8 @@ public final class Rate implements Comparable<Rate> {
 
     public static final Rate ZERO = new Rate(0, 1, false);
 
+    private static final String APPROXIMATE_MARK = "~";
+
     private final long numerator;
 
     private final long denominator;
@@ -33,6 +35,27 @@ public final class Rate implements Comparable<Rate> {
 
     public static Rate of(long whole) {
         return canonical(whole, 1, false);
+    }
+
+    public static Rate parse(String rendered) {
+        if (rendered == null || rendered.isBlank()) {
+            throw new IllegalArgumentException("a rate cannot be parsed from nothing");
+        }
+        String trimmed = rendered.trim();
+        boolean approximate = trimmed.endsWith(APPROXIMATE_MARK);
+        String exact = approximate
+                       ? trimmed.substring(0, trimmed.length() - APPROXIMATE_MARK.length())
+                       : trimmed;
+        int slash = exact.indexOf('/');
+        try {
+            return slash < 0
+                   ? canonical(Long.parseLong(exact), 1, approximate)
+                   : canonical(Long.parseLong(exact.substring(0, slash)),
+                               Long.parseLong(exact.substring(slash + 1)),
+                               approximate);
+        } catch (NumberFormatException malformed) {
+            throw new IllegalArgumentException("a rate reads as <numerator>/<denominator>, got " + rendered);
+        }
     }
 
     private static Rate canonical(long numerator, long denominator, boolean approximate) {
@@ -213,7 +236,7 @@ public final class Rate implements Comparable<Rate> {
     @Override
     public String toString() {
         return numerator + "/" + denominator + (approximate
-                                                ? "~"
+                                                ? APPROXIMATE_MARK
                                                 : "");
     }
 
