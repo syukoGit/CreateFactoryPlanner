@@ -6,7 +6,8 @@ import fr.syuko.createfactoryplanner.core.recipe.RecipeDto;
 import java.util.List;
 
 public record RecipeEntry(String id, List<String> machines, int declaredDurationTicks,
-                          List<IngredientEntry> ingredients, List<OutputEntry> outputs, List<String> pending) {
+                          List<IngredientEntry> ingredients, List<OutputEntry> outputs, List<CatalystEntry> catalysts,
+                          List<String> pending) {
 
     public RecipeEntry {
         if (id == null || id.isBlank()) {
@@ -21,6 +22,9 @@ public record RecipeEntry(String id, List<String> machines, int declaredDuration
         outputs = outputs == null
                   ? List.of()
                   : List.copyOf(outputs);
+        catalysts = catalysts == null
+                    ? List.of()
+                    : List.copyOf(catalysts);
         pending = pending == null
                   ? List.of()
                   : List.copyOf(pending);
@@ -34,6 +38,7 @@ public record RecipeEntry(String id, List<String> machines, int declaredDuration
         return new RecipeDto(recipe(),
                              ingredients.stream().map(IngredientEntry::toDto).toList(),
                              outputs.stream().map(OutputEntry::toDto).toList(),
+                             catalysts.stream().map(CatalystEntry::toDto).toList(),
                              declaredDurationTicks);
     }
 

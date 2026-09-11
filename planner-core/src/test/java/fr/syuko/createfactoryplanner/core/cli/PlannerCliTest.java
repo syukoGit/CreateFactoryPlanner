@@ -66,12 +66,15 @@ class PlannerCliTest {
                                                                                          ResourceKind.ITEM),
                                                                        1,
                                                                        Rate.ratio(7, 4).toString())),
+                                               List.of(new CatalystEntry(new ResourceEntry("create:sand_paper",
+                                                                                           ResourceKind.ITEM), 1)),
                                                List.of());
         String report = PlannerCli.recipe(new Catalog(catalog().meta(), List.of(), List.of(crushing)),
                                           "create:crushing/iron_ore");
         assertTrue(report.contains("on crushing_wheels, 250 ticks"));
         assertTrue(report.contains("in   1 minecraft:iron_ore (+1 equivalents)"));
         assertTrue(report.contains("out  7/4 (1.7500) create:crushed_raw_iron (1 guaranteed)"));
+        assertTrue(report.contains("cat  1 create:sand_paper per machine"));
     }
 
     @Test

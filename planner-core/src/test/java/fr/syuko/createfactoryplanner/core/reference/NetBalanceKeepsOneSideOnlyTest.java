@@ -10,6 +10,7 @@ import fr.syuko.createfactoryplanner.core.recipe.RecipeNormalizer;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -26,7 +27,8 @@ class NetBalanceKeepsOneSideOnlyTest {
                                                           List.of(IngredientDto.of(OBSIDIAN, 1)),
                                                           List.of(OutputDto.certain(DUST, 1),
                                                                   new OutputDto(OBSIDIAN, 0, Rate.ratio(3, 4))),
-                                                          400);
+                                                          400,
+                                                          Set.of());
         assertEquals(Rate.ratio(1, 4), normalized.ingredient(OBSIDIAN).orElseThrow().amountPerOperation());
         assertTrue(normalized.output(OBSIDIAN).isEmpty());
     }
@@ -36,7 +38,8 @@ class NetBalanceKeepsOneSideOnlyTest {
         RecipeDto normalized = RecipeNormalizer.normalize(new RecipeId("create:milling/gravel"),
                                                           List.of(IngredientDto.of(OBSIDIAN, 1)),
                                                           List.of(OutputDto.certain(OBSIDIAN, 3)),
-                                                          100);
+                                                          100,
+                                                          Set.of());
         assertTrue(normalized.ingredient(OBSIDIAN).isEmpty());
         OutputDto left = normalized.output(OBSIDIAN).orElseThrow();
         assertEquals(Rate.of(2), left.expectedPerOperation());
@@ -48,7 +51,8 @@ class NetBalanceKeepsOneSideOnlyTest {
         RecipeDto normalized = RecipeNormalizer.normalize(new RecipeId("create:deploying/kept"),
                                                           List.of(IngredientDto.of(OBSIDIAN, 1)),
                                                           List.of(OutputDto.certain(OBSIDIAN, 1)),
-                                                          0);
+                                                          0,
+                                                          Set.of());
         assertTrue(normalized.ingredient(OBSIDIAN).isPresent());
         assertTrue(normalized.output(OBSIDIAN).isPresent());
     }

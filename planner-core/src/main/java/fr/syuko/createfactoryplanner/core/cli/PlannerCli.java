@@ -136,6 +136,14 @@ public final class PlannerCli {
                   .append(equivalents(ingredient))
                   .append(System.lineSeparator());
         }
+        for (CatalystEntry catalyst : entry.catalysts()) {
+            report.append("  cat  ")
+                  .append(catalyst.amountPerMachine())
+                  .append(' ')
+                  .append(catalyst.resource().resource())
+                  .append(" per machine")
+                  .append(System.lineSeparator());
+        }
         for (OutputEntry output : entry.outputs()) {
             report.append("  out  ")
                   .append(rendered(output.toDto().expectedPerOperation()))

@@ -38,7 +38,12 @@ public final class RawRecipes {
         boolean allWithRemainder = !stacks.isEmpty() && stacks.stream()
                                                               .noneMatch(stack -> stack.getCraftingRemainingItem()
                                                                                        .isEmpty());
-        return new RawIngredient(tagsOf(ingredient), items, ingredient.isCustom(), allDamageable, allWithRemainder);
+        return new RawIngredient(tagsOf(ingredient),
+                                 items,
+                                 ingredient.isCustom(),
+                                 allDamageable,
+                                 allWithRemainder,
+                                 false);
     }
 
     public static RawFluidIngredient of(SizedFluidIngredient ingredient) {

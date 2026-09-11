@@ -67,6 +67,7 @@ class CatalogJsonTest {
                                                                                          ResourceKind.ITEM),
                                                                        1,
                                                                        Rate.ratio(5, 4).toString())),
+                                               List.of(),
                                                List.of());
         Catalog written = new Catalog(catalog().meta(), List.of(), List.of(crushing));
         RecipeDto rebuilt = CatalogJson.read(CatalogJson.write(written))

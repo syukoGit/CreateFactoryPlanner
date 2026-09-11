@@ -1,5 +1,6 @@
 package fr.syuko.createfactoryplanner.data.recipe;
 
+import fr.syuko.createfactoryplanner.core.io.CatalystEntry;
 import fr.syuko.createfactoryplanner.core.io.IngredientEntry;
 import fr.syuko.createfactoryplanner.core.io.OutputEntry;
 import fr.syuko.createfactoryplanner.core.io.RecipeEntry;
@@ -11,18 +12,13 @@ import fr.syuko.createfactoryplanner.core.recipe.OutputDto;
 import fr.syuko.createfactoryplanner.core.recipe.RecipeDto;
 import fr.syuko.createfactoryplanner.core.recipe.RecipeNormalizer;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public final class RawRecipeTranslator {
 
     private static final String SEQUENCED_ASSEMBLY_READER = "sequenced_assembly";
 
     private static final long CHANCE_SCALE = 10_000L;
-
-    public static final String PENDING_CATALYST_RULE = "pending_catalyst_rule";
 
     public static final String PENDING_SEQUENCE_RULE = "pending_sequence_rule";
 
@@ -39,10 +35,8 @@ public final class RawRecipeTranslator {
         RecipeDto normalized = RecipeNormalizer.normalize(new RecipeId(raw.id()),
                                                           ingredients,
                                                           outputsOf(raw),
-                                                          Math.max(0, raw.declaredDuration()));
-        if (carriesDurability(raw)) {
-            pending.add(PENDING_CATALYST_RULE);
-        }
+                                                          Math.max(0, raw.declaredDuration()),
+                                                          keptUntouchedOf(raw));
         if (SEQUENCED_ASSEMBLY_READER.equals(raw.reader())) {
             pending.add(PENDING_SEQUENCE_RULE);
         }
@@ -56,6 +50,7 @@ public final class RawRecipeTranslator {
                                                                                                         List.of())))
                                          .toList(),
                                normalized.outputs().stream().map(OutputEntry::of).toList(),
+                               normalized.catalysts().stream().map(CatalystEntry::of).toList(),
                                List.copyOf(pending));
     }
 
@@ -108,7 +103,14 @@ public final class RawRecipeTranslator {
         return Rate.ratio(Math.round(chance * CHANCE_SCALE), CHANCE_SCALE);
     }
 
-    private static boolean carriesDurability(RawRecipe raw) {
-        return raw.ingredients().stream().anyMatch(RawIngredient::allDamageable);
+    private static Set<ResourceId> keptUntouchedOf(RawRecipe raw) {
+        Set<ResourceId> kept = new LinkedHashSet<>();
+        for (RawIngredient ingredient : raw.ingredients()) {
+            List<String> items = ingredient.items();
+            if (ingredient.keptUntouched() && items != null && !items.isEmpty()) {
+                kept.add(ResourceId.item(items.getFirst()));
+            }
+        }
+        return kept;
     }
 }

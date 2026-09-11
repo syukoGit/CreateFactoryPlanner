@@ -4,10 +4,7 @@ import fr.syuko.createfactoryplanner.core.math.Rate;
 import fr.syuko.createfactoryplanner.core.model.RecipeId;
 import fr.syuko.createfactoryplanner.core.model.ResourceId;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public final class RecipeNormalizer {
 
@@ -17,26 +14,38 @@ public final class RecipeNormalizer {
     public static RecipeDto normalize(RecipeId id,
                                       List<IngredientDto> ingredients,
                                       List<OutputDto> outputs,
-                                      int declaredDurationTicks) {
+                                      int declaredDurationTicks,
+                                      Set<ResourceId> keptUntouched) {
         Map<ResourceId, Rate> consumed = mergeIngredients(ingredients);
         Map<ResourceId, OutputDto> produced = mergeOutputs(outputs);
         List<IngredientDto> netIngredients = new ArrayList<>();
         List<OutputDto> netOutputs = new ArrayList<>();
+        List<CatalystDto> catalysts = new ArrayList<>();
 
         for (Map.Entry<ResourceId, Rate> entry : consumed.entrySet()) {
-            OutputDto opposite = produced.get(entry.getKey());
-            if (opposite == null) {
-                netIngredients.add(new IngredientDto(entry.getKey(), entry.getValue()));
+            ResourceId resource = entry.getKey();
+            Rate amount = entry.getValue();
+            if (keptUntouched.contains(resource)) {
+                catalysts.add(new CatalystDto(resource, primingAmount(amount)));
                 continue;
             }
-            balance(entry.getKey(), entry.getValue(), opposite, netIngredients, netOutputs);
+            OutputDto opposite = produced.get(resource);
+            if (opposite == null) {
+                netIngredients.add(new IngredientDto(resource, amount));
+                continue;
+            }
+            balance(resource, amount, opposite, netIngredients, netOutputs);
         }
         for (Map.Entry<ResourceId, OutputDto> entry : produced.entrySet()) {
             if (!consumed.containsKey(entry.getKey())) {
                 netOutputs.add(entry.getValue());
             }
         }
-        return new RecipeDto(id, netIngredients, netOutputs, declaredDurationTicks);
+        return new RecipeDto(id, netIngredients, netOutputs, catalysts, declaredDurationTicks);
+    }
+
+    private static long primingAmount(Rate amount) {
+        return Math.max(1, -Math.floorDiv(-amount.numerator(), amount.denominator()));
     }
 
     private static Map<ResourceId, Rate> mergeIngredients(List<IngredientDto> ingredients) {

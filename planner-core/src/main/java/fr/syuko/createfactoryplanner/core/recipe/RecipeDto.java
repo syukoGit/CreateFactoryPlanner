@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 
 public record RecipeDto(RecipeId id, List<IngredientDto> ingredients, List<OutputDto> outputs,
-                        int declaredDurationTicks) {
+                        List<CatalystDto> catalysts, int declaredDurationTicks) {
 
     public RecipeDto {
         if (id == null) {
@@ -17,20 +17,37 @@ public record RecipeDto(RecipeId id, List<IngredientDto> ingredients, List<Outpu
         }
         ingredients = List.copyOf(ingredients);
         outputs = List.copyOf(outputs);
+        catalysts = List.copyOf(catalysts);
         if (declaredDurationTicks < 0) {
             throw new IllegalArgumentException("a declared duration cannot be negative, got " + declaredDurationTicks + " on " + id.value());
         }
-        requireDistinctResources(ingredients.stream().map(IngredientDto::resource).toList(), "ingredient", id);
-        requireDistinctResources(outputs.stream().map(OutputDto::resource).toList(), "output", id);
+        Set<ResourceId> consumed = requireDistinctResources(ingredients.stream().map(IngredientDto::resource).toList(),
+                                                            "ingredient",
+                                                            id);
+        Set<ResourceId> produced = requireDistinctResources(outputs.stream().map(OutputDto::resource).toList(),
+                                                            "output",
+                                                            id);
+        requireDistinctResources(catalysts.stream().map(CatalystDto::resource).toList(), "catalyst", id);
+        for (CatalystDto catalyst : catalysts) {
+            if (consumed.contains(catalyst.resource()) || produced.contains(catalyst.resource())) {
+                throw new IllegalArgumentException("a catalyst never flows, got " + catalyst.resource()
+                                                                                            .value() + " both as a catalyst and as a flowing resource on " + id.value());
+            }
+        }
     }
 
-    private static void requireDistinctResources(List<ResourceId> resources, String side, RecipeId id) {
+    private static Set<ResourceId> requireDistinctResources(List<ResourceId> resources, String side, RecipeId id) {
         Set<ResourceId> seen = new HashSet<>();
         for (ResourceId resource : resources) {
             if (!seen.add(resource)) {
                 throw new IllegalArgumentException("normalization leaves one " + side + " per resource, got " + resource.value() + " twice on " + id.value());
             }
         }
+        return seen;
+    }
+
+    public Optional<CatalystDto> catalyst(ResourceId resource) {
+        return catalysts.stream().filter(catalyst -> catalyst.resource().equals(resource)).findFirst();
     }
 
     public boolean declaresItsDuration() {

@@ -6,6 +6,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class ItemApplicationRecipeReader implements RawRecipeReader {
@@ -21,6 +22,15 @@ public final class ItemApplicationRecipeReader implements RawRecipeReader {
                        : "held item is damaged when damageable, consumed otherwise");
     }
 
+    private static List<RawIngredient> markHeldItem(List<RawIngredient> ingredients) {
+        if (ingredients.size() <= HELD_ITEM_INDEX) {
+            return ingredients;
+        }
+        List<RawIngredient> marked = new ArrayList<>(ingredients);
+        marked.set(HELD_ITEM_INDEX, marked.get(HELD_ITEM_INDEX).markedAsKept());
+        return List.copyOf(marked);
+    }
+
     @Override
     public boolean handles(Recipe<?> recipe) {
         return recipe instanceof ItemApplicationRecipe;
@@ -33,7 +43,9 @@ public final class ItemApplicationRecipeReader implements RawRecipeReader {
         return new RawRecipe(raw.id(),
                              raw.recipeType(),
                              "item_application",
-                             raw.ingredients(),
+                             recipe.shouldKeepHeldItem()
+                             ? markHeldItem(raw.ingredients())
+                             : raw.ingredients(),
                              raw.results(),
                              raw.fluidIngredients(),
                              raw.fluidResults(),

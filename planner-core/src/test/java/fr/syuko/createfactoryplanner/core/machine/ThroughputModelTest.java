@@ -23,6 +23,7 @@ class ThroughputModelTest {
     private static final RecipeDto RECIPE = new RecipeDto(new RecipeId("create:pressing/iron_ingot"),
                                                           List.of(),
                                                           List.of(),
+                                                          List.of(),
                                                           240);
 
     @Test

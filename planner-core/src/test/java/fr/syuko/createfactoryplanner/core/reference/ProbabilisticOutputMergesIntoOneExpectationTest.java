@@ -10,6 +10,7 @@ import fr.syuko.createfactoryplanner.core.recipe.RecipeNormalizer;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -28,7 +29,8 @@ class ProbabilisticOutputMergesIntoOneExpectationTest {
                                                           List.of(IngredientDto.of(ORE, 1)),
                                                           List.of(OutputDto.certain(IRON, 1),
                                                                   new OutputDto(IRON, 0, Rate.ratio(1, 4))),
-                                                          400);
+                                                          400,
+                                                          Set.of());
         assertEquals(1, normalized.outputs().size());
         OutputDto iron = normalized.output(IRON).orElseThrow();
         assertEquals(Rate.ratio(5, 4), iron.expectedPerOperation());
@@ -42,7 +44,8 @@ class ProbabilisticOutputMergesIntoOneExpectationTest {
                                                           List.of(IngredientDto.of(ORE, 1)),
                                                           List.of(new OutputDto(IRON, 0, Rate.ratio(1, 2)),
                                                                   new OutputDto(IRON, 0, Rate.ratio(1, 2))),
-                                                          400);
+                                                          400,
+                                                          Set.of());
         OutputDto iron = normalized.output(IRON).orElseThrow();
         assertEquals(Rate.of(1), iron.expectedPerOperation());
         assertEquals(0, iron.guaranteed());

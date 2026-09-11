@@ -10,6 +10,7 @@ import fr.syuko.createfactoryplanner.core.recipe.RecipeNormalizer;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -29,7 +30,8 @@ class FourIngotsInFourSlotsBecomeOneInputTest {
                                                                   IngredientDto.of(INGOT, 1),
                                                                   IngredientDto.of(INGOT, 1)),
                                                           List.of(OutputDto.certain(BLOCK, 1)),
-                                                          0);
+                                                          0,
+                                                          Set.of());
         assertEquals(1, normalized.ingredients().size());
         assertEquals(Rate.of(4), normalized.ingredient(INGOT).orElseThrow().amountPerOperation());
     }
