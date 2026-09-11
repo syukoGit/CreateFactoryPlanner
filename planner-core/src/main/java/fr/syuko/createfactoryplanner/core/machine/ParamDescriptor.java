@@ -1,7 +1,6 @@
 package fr.syuko.createfactoryplanner.core.machine;
 
-public record ParamDescriptor(String id, ParamType type, int min, int max, int defaultValue,
-                              boolean affectsThroughput) {
+public record ParamDescriptor(String id, int min, int max, int defaultValue, boolean affectsThroughput) {
 
     public static final String RPM = "rpm";
 
@@ -10,9 +9,6 @@ public record ParamDescriptor(String id, ParamType type, int min, int max, int d
     public ParamDescriptor {
         if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("a parameter id cannot be blank");
-        }
-        if (type == null) {
-            throw new IllegalArgumentException("a parameter must declare its type, on " + id);
         }
         if (min < 0) {
             throw new IllegalArgumentException("a parameter cannot go below zero, got " + min + " on " + id);
@@ -27,7 +23,6 @@ public record ParamDescriptor(String id, ParamType type, int min, int max, int d
 
     public static ParamDescriptor rotationSpeed(MachineProfile profile) {
         return new ParamDescriptor(RPM,
-                                   ParamType.ROTATION_SPEED,
                                    Math.max(1, profile.minimumRpm()),
                                    profile.maximumRpm(),
                                    profile.defaultRpm(),

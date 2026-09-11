@@ -4,7 +4,6 @@ import fr.syuko.createfactoryplanner.core.machine.MachineSettings;
 import fr.syuko.createfactoryplanner.core.machine.ParamDescriptor;
 import fr.syuko.createfactoryplanner.core.math.Rate;
 import fr.syuko.createfactoryplanner.core.model.*;
-import fr.syuko.createfactoryplanner.core.recipe.CatalystDto;
 import fr.syuko.createfactoryplanner.core.recipe.IngredientDto;
 import fr.syuko.createfactoryplanner.core.recipe.OutputDto;
 import fr.syuko.createfactoryplanner.core.recipe.RecipeDto;
@@ -26,15 +25,11 @@ class RecipeNodeTest {
 
     private static final ResourceId POWDER = ResourceId.item("create:powdered_obsidian");
 
-    private static final ResourceId SAND_PAPER = ResourceId.item("create:sand_paper");
-
     private static RecipeDto polishing() {
         return new RecipeDto(new RecipeId("create:deploying/polished"),
                              List.of(new IngredientDto(ORE, 1), new IngredientDto(WATER, 200)),
                              List.of(new OutputDto(POWDER, 1, Rate.ratio(5, 4))),
-                             List.of(new CatalystDto(SAND_PAPER, 1)),
-                             0,
-                             null);
+                             0);
     }
 
     @Test
@@ -47,14 +42,6 @@ class RecipeNodeTest {
         assertEquals(1, node.outputs().size());
         assertEquals(WATER, node.inputs().get(1).resource());
         assertEquals(1, node.inputs().get(1).index());
-    }
-
-    @Test
-    void givesNoPortToACatalystBecauseNothingFlowsThroughIt() {
-        RecipeNode node = RecipeNode.forRecipe(ID, polishing(), DEPLOYER, MachineSettings.NONE, Vec2i.ORIGIN);
-        assertFalse(node.inputResources().contains(SAND_PAPER));
-        assertFalse(node.outputResources().contains(SAND_PAPER));
-        assertTrue(node.ports().stream().noneMatch(port -> SAND_PAPER.equals(port.resource())));
     }
 
     @Test

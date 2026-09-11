@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ThroughputModelTest {
 
@@ -24,9 +23,7 @@ class ThroughputModelTest {
     private static final RecipeDto RECIPE = new RecipeDto(new RecipeId("create:pressing/iron_ingot"),
                                                           List.of(),
                                                           List.of(),
-                                                          List.of(),
-                                                          240,
-                                                          null);
+                                                          240);
 
     @Test
     void readsItsParametersFromTheSettingsAndFallsBackOnTheProfile() {
@@ -57,13 +54,6 @@ class ThroughputModelTest {
                      new SpeedProportionalThroughput().stressUnits(MachineSettings.of(ParamDescriptor.RPM, 64), PRESS));
     }
 
-    @Test
-    void assumesNothingUnlessTheModelSaysOtherwise() {
-        assertTrue(new SpeedProportionalThroughput().assumptions().isEmpty());
-        assertEquals(List.of(Assumption.of("createfactoryplanner.assumption.blocking_filter")),
-                     new FilteredLineThroughput().assumptions());
-    }
-
     private record SpeedProportionalThroughput() implements ThroughputModel {
 
         @Override
@@ -80,29 +70,6 @@ class ThroughputModelTest {
         @Override
         public double stressUnits(MachineSettings settings, MachineProfile profile) {
             return profile.stressImpactPerRpm() * settings.value(ParamDescriptor.RPM, profile.defaultRpm());
-        }
-    }
-
-    private record FilteredLineThroughput() implements ThroughputModel {
-
-        @Override
-        public Rate operationsPerTick(RecipeDto recipe, MachineSettings settings, MachineProfile profile) {
-            return Rate.ZERO;
-        }
-
-        @Override
-        public List<ParamDescriptor> parameters(MachineProfile profile) {
-            return List.of();
-        }
-
-        @Override
-        public double stressUnits(MachineSettings settings, MachineProfile profile) {
-            return 0;
-        }
-
-        @Override
-        public List<Assumption> assumptions() {
-            return List.of(Assumption.of("createfactoryplanner.assumption.blocking_filter"));
         }
     }
 }

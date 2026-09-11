@@ -5,13 +5,12 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class MachineProfileTest {
 
     private static final MachineId MIXER = new MachineId("mechanical_mixer");
-
-    private static final MachineId SPOUT = new MachineId("spout");
 
     @Test
     void carriesTheSpeedsReadFromTheGame() {
@@ -20,7 +19,6 @@ class MachineProfileTest {
         assertEquals(256, mixer.maximumRpm());
         assertEquals(512, mixer.scalar("cycle", 0));
         assertEquals(240, mixer.scalar("unknown", 240));
-        assertTrue(mixer.isKinetic());
     }
 
     @Test
@@ -33,22 +31,6 @@ class MachineProfileTest {
     void acceptsAMachineWithoutAMinimumSpeed() {
         MachineProfile millstone = new MachineProfile(new MachineId("millstone"), 0, 256, 128, 4, Map.of());
         assertEquals(0, millstone.minimumRpm());
-        assertTrue(millstone.isKinetic());
-    }
-
-    @Test
-    void carriesNoSpeedAtAllForANonKineticMachine() {
-        MachineProfile spout = MachineProfile.nonKinetic(SPOUT, Map.of("filling_time", 20L));
-        assertFalse(spout.isKinetic());
-        assertEquals(0, spout.maximumRpm());
-        assertEquals(0, spout.stressImpactPerRpm());
-        assertEquals(20, spout.scalar("filling_time", 0));
-    }
-
-    @Test
-    void refusesANonKineticMachineThatStillClaimsSpeedOrStress() {
-        assertThrows(IllegalArgumentException.class, () -> new MachineProfile(SPOUT, 0, 0, 0, 4, Map.of()));
-        assertThrows(IllegalArgumentException.class, () -> new MachineProfile(SPOUT, 0, 0, 128, 0, Map.of()));
     }
 
     @Test

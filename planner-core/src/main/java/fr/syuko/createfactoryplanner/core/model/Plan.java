@@ -9,7 +9,7 @@ import java.util.stream.LongStream;
 
 public final class Plan {
 
-    private static final Plan EMPTY = new Plan(Map.of(), Map.of(), null, 0, 0);
+    private static final Plan EMPTY = new Plan(Map.of(), Map.of(), 0, 0);
 
     private final Map<NodeId, Node> nodes;
 
@@ -17,20 +17,16 @@ public final class Plan {
 
     private final Map<Port, LinkId> linksByPort;
 
-    private final Target target;
-
     private final long nextNodeValue;
 
     private final long nextLinkValue;
 
     private Plan(Map<NodeId, Node> nodes,
                  Map<LinkId, Link> links,
-                 Target target,
                  long nextNodeValue,
                  long nextLinkValue) {
         this.nodes = Map.copyOf(nodes);
         this.links = Map.copyOf(links);
-        this.target = target;
         this.nextNodeValue = nextNodeValue;
         this.nextLinkValue = nextLinkValue;
         this.linksByPort = indexByPort(this.nodes, this.links);
@@ -40,7 +36,7 @@ public final class Plan {
         return EMPTY;
     }
 
-    public static Plan of(Collection<Node> nodes, Collection<Link> links, Target target) {
+    public static Plan of(Collection<Node> nodes, Collection<Link> links) {
         Map<NodeId, Node> nodesById = new LinkedHashMap<>();
         for (Node node : nodes) {
             if (nodesById.put(node.id(), node) != null) {
@@ -57,7 +53,6 @@ public final class Plan {
         }
         return new Plan(nodesById,
                         linksById,
-                        target,
                         nextValue(nodesById.keySet().stream().mapToLong(NodeId::value)),
                         nextValue(linksById.keySet().stream().mapToLong(LinkId::value)));
     }
@@ -104,16 +99,8 @@ public final class Plan {
         return links;
     }
 
-    public Optional<Target> target() {
-        return Optional.ofNullable(target);
-    }
-
     public Optional<Node> node(NodeId id) {
         return Optional.ofNullable(nodes.get(id));
-    }
-
-    public Optional<Link> link(LinkId id) {
-        return Optional.ofNullable(links.get(id));
     }
 
     public Optional<Link> linkAt(Port port) {
@@ -142,7 +129,7 @@ public final class Plan {
     public Plan withNode(Node node) {
         Map<NodeId, Node> replaced = new LinkedHashMap<>(nodes);
         replaced.put(node.id(), node);
-        return new Plan(replaced, links, target, Math.max(nextNodeValue, node.id().value() + 1), nextLinkValue);
+        return new Plan(replaced, links, Math.max(nextNodeValue, node.id().value() + 1), nextLinkValue);
     }
 
     public Plan withoutNode(NodeId id) {
@@ -154,7 +141,7 @@ public final class Plan {
         }
         Map<NodeId, Node> remaining = new LinkedHashMap<>(nodes);
         remaining.remove(id);
-        return new Plan(remaining, links, target, nextNodeValue, nextLinkValue);
+        return new Plan(remaining, links, nextNodeValue, nextLinkValue);
     }
 
     public Plan withLink(Link link) {
@@ -164,7 +151,7 @@ public final class Plan {
         }
         Map<LinkId, Link> added = new LinkedHashMap<>(links);
         added.put(link.id(), link);
-        return new Plan(nodes, added, target, nextNodeValue, Math.max(nextLinkValue, link.id().value() + 1));
+        return new Plan(nodes, added, nextNodeValue, Math.max(nextLinkValue, link.id().value() + 1));
     }
 
     public Plan withoutLink(LinkId id) {
@@ -173,23 +160,17 @@ public final class Plan {
         }
         Map<LinkId, Link> remaining = new LinkedHashMap<>(links);
         remaining.remove(id);
-        return new Plan(nodes, remaining, target, nextNodeValue, nextLinkValue);
-    }
-
-    public Plan withTarget(Target replacement) {
-        return new Plan(nodes, links, replacement, nextNodeValue, nextLinkValue);
+        return new Plan(nodes, remaining, nextNodeValue, nextLinkValue);
     }
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof Plan plan && nodes.equals(plan.nodes) && links.equals(plan.links) && Objects.equals(
-                target,
-                plan.target);
+        return other instanceof Plan plan && nodes.equals(plan.nodes) && links.equals(plan.links);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(nodes, links, target);
+        return Objects.hash(nodes, links);
     }
 
     @Override

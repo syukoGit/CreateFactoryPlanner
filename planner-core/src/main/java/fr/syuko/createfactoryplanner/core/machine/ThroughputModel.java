@@ -12,8 +12,4 @@ public interface ThroughputModel {
     List<ParamDescriptor> parameters(MachineProfile profile);
 
     double stressUnits(MachineSettings settings, MachineProfile profile);
-
-    default List<Assumption> assumptions() {
-        return List.of();
-    }
 }

@@ -1,7 +1,6 @@
 package fr.syuko.createfactoryplanner.core.model;
 
 import fr.syuko.createfactoryplanner.core.machine.MachineSettings;
-import fr.syuko.createfactoryplanner.core.math.Rate;
 import fr.syuko.createfactoryplanner.core.model.link.Link;
 import fr.syuko.createfactoryplanner.core.model.node.*;
 import org.junit.jupiter.api.Test;
@@ -34,7 +33,7 @@ class PlanTest {
         ResourceNode conveyor = conveyor(0);
         RecipeNode press = press(1);
         Link link = new Link(new LinkId(0), conveyor.outputs().getFirst(), press.inputs().getFirst());
-        return Plan.of(List.of(conveyor, press), List.of(link), null);
+        return Plan.empty().withNode(conveyor).withNode(press).withLink(link);
     }
 
     @Test
@@ -42,7 +41,6 @@ class PlanTest {
         Plan plan = Plan.empty();
         assertTrue(plan.nodes().isEmpty());
         assertTrue(plan.links().isEmpty());
-        assertTrue(plan.target().isEmpty());
         assertEquals(new NodeId(0), plan.nextNodeId());
         assertEquals(new LinkId(0), plan.nextLinkId());
     }
@@ -77,7 +75,7 @@ class PlanTest {
                                new Port(new NodeId(1), 7, PortDirection.INPUT, IRON));
         List<Node> nodes = List.of(conveyor, press);
         List<Link> links = List.of(beyond);
-        assertThrows(IllegalArgumentException.class, () -> Plan.of(nodes, links, null));
+        assertThrows(IllegalArgumentException.class, () -> Plan.of(nodes, links));
     }
 
     @Test
@@ -87,7 +85,7 @@ class PlanTest {
         Link dangling = new Link(new LinkId(0), conveyor.outputs().getFirst(), absent.inputs().getFirst());
         List<Node> alone = List.of(conveyor);
         List<Link> links = List.of(dangling);
-        assertThrows(IllegalArgumentException.class, () -> Plan.of(alone, links, null));
+        assertThrows(IllegalArgumentException.class, () -> Plan.of(alone, links));
     }
 
     @Test
@@ -125,17 +123,15 @@ class PlanTest {
     @Test
     void leavesTheOriginalUntouchedOnEveryEdit() {
         Plan plan = connected();
-        Plan edited = plan.withNode(conveyor(5)).withTarget(new Target(IRON, Rate.of(3)));
+        Plan edited = plan.withNode(conveyor(5));
         assertEquals(2, plan.nodes().size());
-        assertTrue(plan.target().isEmpty());
         assertEquals(3, edited.nodes().size());
-        assertEquals(Rate.of(3), edited.target().orElseThrow().rate());
     }
 
     @Test
     void comparesOnItsContentRatherThanOnItsEditingHistory() {
         Plan built = Plan.empty().withNode(conveyor(0)).withNode(press(1));
-        Plan rebuilt = Plan.of(List.of(conveyor(0), press(1)), List.of(), null);
+        Plan rebuilt = Plan.of(List.of(conveyor(0), press(1)), List.of());
         assertEquals(built, rebuilt);
         assertEquals(built.hashCode(), rebuilt.hashCode());
 

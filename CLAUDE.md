@@ -9,22 +9,24 @@ Create Factory Planner is a **NeoForge mod** that adds an in-game production pla
 actual flow propagate through the graph. It is *not* a solver — the mod does the arithmetic, the speed data and the flow
 consistency; every structural decision stays with the player.
 
-Two documents are the source of truth. Read both before planning any feature; amend the spec first when a product
-decision changes, then the plan, then the code.
+Two documents are the source of truth. They live in `plans/`, which is **not committed** — ask the user for them if
+the directory is missing, and never reconstruct their content from memory. Read both before planning any feature; amend
+the spec first when a product decision changes, then the plan, then the code.
 
-- **[create-factory-planner-spec-fonctionnelle-v0.5.3.md](plans/create-factory-planner-spec-fonctionnelle-v0.5.3.md)** —
-  functional spec. Features `F-xx`, interfaces `I-xx`, calculation rules `R-xx`, settled decisions `D-xxx`, open
-  questions `Q-xx`. **Functional only, no implementation.**
-- **[create-factory-planner-plan-implementation.md](plans/create-factory-planner-plan-implementation.md)** —
-  implementation plan v1.2. Milestones `M1`–`M7`, phases 0–8, gates `G1`–`G5`, numbered tasks `T-xxx`. **No product
-  decision is taken there** — if implementation reveals a gap, fix the spec first.
+- **The functional spec** — features `F-xx`, interfaces `I-xx`, calculation rules `R-xx`, settled decisions `D-xxx`,
+  open questions `Q-xx`. **Functional only, no implementation.**
+- **The implementation plan** — lots and vertical slices, gates, and a table mapping the old numbered tasks `T-xxx`
+  onto them. **No product decision is taken there** — if implementation reveals a gap, fix the spec first.
+
+`plans/notes/` holds the phase 0 reconnaissance notes, and `plans/legacy/` the superseded horizontal plans, kept for
+history only — never follow them for implementation order.
 
 Both documents are written in French; the code, the identifiers and `en_us` are English (D-020).
 
-**The repository is at the very start of phase 0.** The two Gradle modules exist, but `planner-core` is an empty
-skeleton and the only Java file is the `@Mod` entrypoint under `neoforge/` — no engine, no UI. Everything under
-Architecture below describes the *target* structure, not what is on disk. Do not assume a class exists because it is
-named here.
+**The repository is at the start of lot A.** `:neoforge` harvests recipes; `planner-core` carries `Rate`, the opaque
+identifiers, the recipe and machine DTOs, `ThroughputModel` and the bipartite graph — and nothing calls anything yet.
+Everything under Architecture below describes the *target* structure, not what is on disk. Do not assume a class exists
+because it is named here.
 
 The differentiating argument is that the mod reads recipes and stress values **from the game as installed**, so it stays
 correct on any modpack, addon or datapack — which no web calculator can guarantee. Never trade that away for hardcoded
@@ -119,8 +121,9 @@ Single test class or method:
 The build is **two modules** (`T-400` done): `:planner-core` is plain Java, `:neoforge` is the mod and embeds the core's
 classes into its jar — no `jarJar`, the core is not a mod. Both modules are declared to the loader through
 `neoForge.mods`, so a core class missing from that block fails **in game only**. The run tasks live on `:neoforge`;
-`gameDirectory` and `run/mods` still point at the repository-root `run/`. There are no tests yet — JUnit 5 is wired and
-`test` reports `NO-SOURCE`. Gametests are enabled (`neoforge.enabledGameTestNamespaces=createfactoryplanner`) but none
+`gameDirectory` and `run/mods` still point at the repository-root `run/`. The JUnit 5 suite of `:planner-core` runs in
+seconds and carries the whole regression net. Gametests are enabled
+(`neoforge.enabledGameTestNamespaces=createfactoryplanner`) but none
 are registered.
 
 `runGameTestServer` **crashes when no gametests exist**; that is the run config's documented behaviour, not a
@@ -221,7 +224,7 @@ Throughput per machine type comes from a `ThroughputModel` implementation:
 
 | Machine                                                  | Nominal throughput                                                       |
 |----------------------------------------------------------|--------------------------------------------------------------------------|
-| Press, mixer, wheels, millstone, saw, deployer, crafters | `f(RPM)` — `StationThroughput`                                           |
+| Press, mixer, wheels, millstone, saw, deployer, crafters | `f(RPM)` — one class per formula shape, never one shared class           |
 | Encased fan line                                         | `fan_capacity × N`, `fan_capacity = 128` items/min — `FanLineThroughput` |
 
 **Transport is out of scope in v1** (D-010): links have no type, no capacity, no constraint. v1 assumes **optimal

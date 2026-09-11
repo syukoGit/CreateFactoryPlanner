@@ -16,7 +16,6 @@ class ParamDescriptorTest {
         MachineProfile lowered = new MachineProfile(MIXER, 30, 64, 64, 4, Map.of());
         ParamDescriptor rpm = ParamDescriptor.rotationSpeed(lowered);
         assertEquals(ParamDescriptor.RPM, rpm.id());
-        assertEquals(ParamType.ROTATION_SPEED, rpm.type());
         assertEquals(30, rpm.min());
         assertEquals(64, rpm.max());
         assertEquals(64, rpm.defaultValue());
@@ -31,15 +30,15 @@ class ParamDescriptorTest {
 
     @Test
     void carriesTheSuOnlyFlagAsDataRatherThanAsACondition() {
-        ParamDescriptor fanRpm = new ParamDescriptor(ParamDescriptor.RPM, ParamType.ROTATION_SPEED, 1, 256, 128, false);
-        ParamDescriptor fanCount = new ParamDescriptor(ParamDescriptor.FAN_COUNT, ParamType.COUNT, 1, 64, 1, true);
+        ParamDescriptor fanRpm = new ParamDescriptor(ParamDescriptor.RPM, 1, 256, 128, false);
+        ParamDescriptor fanCount = new ParamDescriptor(ParamDescriptor.FAN_COUNT, 1, 64, 1, true);
         assertFalse(fanRpm.affectsThroughput());
         assertTrue(fanCount.affectsThroughput());
     }
 
     @Test
     void boundsTheValuesItIsGiven() {
-        ParamDescriptor fanCount = new ParamDescriptor(ParamDescriptor.FAN_COUNT, ParamType.COUNT, 1, 64, 1, true);
+        ParamDescriptor fanCount = new ParamDescriptor(ParamDescriptor.FAN_COUNT, 1, 64, 1, true);
         assertEquals(1, fanCount.clamp(0));
         assertEquals(64, fanCount.clamp(1000));
         assertEquals(6, fanCount.clamp(6));
@@ -50,12 +49,9 @@ class ParamDescriptorTest {
 
     @Test
     void refusesADescriptorItCouldNeverSatisfy() {
-        assertThrows(IllegalArgumentException.class, () -> new ParamDescriptor(" ", ParamType.COUNT, 1, 2, 1, true));
-        assertThrows(IllegalArgumentException.class, () -> new ParamDescriptor("rpm", null, 1, 2, 1, true));
-        assertThrows(IllegalArgumentException.class, () -> new ParamDescriptor("rpm", ParamType.COUNT, 5, 2, 3, true));
-        assertThrows(IllegalArgumentException.class,
-                     () -> new ParamDescriptor("rpm", ParamType.COUNT, 1, 10, 20, true));
-        assertThrows(IllegalArgumentException.class,
-                     () -> new ParamDescriptor("rpm", ParamType.COUNT, -1, 10, 1, true));
+        assertThrows(IllegalArgumentException.class, () -> new ParamDescriptor(" ", 1, 2, 1, true));
+        assertThrows(IllegalArgumentException.class, () -> new ParamDescriptor("rpm", 5, 2, 3, true));
+        assertThrows(IllegalArgumentException.class, () -> new ParamDescriptor("rpm", 1, 10, 20, true));
+        assertThrows(IllegalArgumentException.class, () -> new ParamDescriptor("rpm", -1, 10, 1, true));
     }
 }
